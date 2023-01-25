@@ -1,25 +1,37 @@
 import {
-  Box,
   Button,
   FormControl,
-  FormHelperText,
   FormLabel,
   Input,
   InputGroup,
   InputRightElement,
   StackDivider,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
-
+function timeout(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 const Signup = () => {
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [confirmPassword, setConfirmPassword] = useState();
-  const [nickName, setNickName] = useState();
   const [show, setShow] = useState(false);
   const [image, setImage] = useState();
+  const [loadImage, setLoadImage] = useState(false);
+  const [submitButton, setsubmitButton] = useState({
+    isLoading: false,
+    loadingText: "",
+    buttonText: "Sign Up!",
+    bgColor: "#449",
+  });
+  const [buttonTexts, setbuttonTexts] = useState({
+    imageUpload: "",
+    imageColor: "",
+  });
+  const toast = useToast();
   const nameHandler = (name) => {
     setName(name);
   };
@@ -35,18 +47,94 @@ const Signup = () => {
     setConfirmPassword(password);
   };
 
-  const nickNameHandler = (nickName) => {
-    setNickName(nickName);
-  };
-
-  const imageHandler = (image) => {
-    setImage(image);
+  const imageHandler = async (image) => {
+    setLoadImage(true);
+    try {
+      buttonTexts.imageUpload = "Uploading";
+      buttonTexts.imageColor = "#449";
+      setbuttonTexts(buttonTexts);
+      setImage(image);
+      // To be removed
+      await timeout(5000);
+      //if (image) throw new Error();
+      buttonTexts.imageUpload = "Uploaded";
+      buttonTexts.imageColor = "#494";
+      setbuttonTexts(buttonTexts);
+      setLoadImage(false);
+    } catch (e) {
+      buttonTexts.imageUpload = "Failed";
+      buttonTexts.imageColor = "#944";
+      setbuttonTexts(buttonTexts);
+      setLoadImage(false);
+    }
   };
   const flip = () => {
     setShow(!show);
   };
+  const updateSubmit = (newState) => {
+    console.log(newState, submitButton);
+    for (let key in submitButton) {
+      submitButton[key] =
+        newState[key] === undefined ? submitButton[key] : newState[key];
+    }
+    console.log(newState, submitButton);
+    setsubmitButton(submitButton);
+  };
+  const submitHandler = async (e) => {
+    let errorMsg = [];
+    try {
+      //console.log(submitButton);
 
-  const submitHandler = (e) => {};
+      updateSubmit({
+        isLoading: true,
+        loadingText: "Validating...",
+      });
+      //console.log(submitButton);
+      //await timeout(5000);
+
+      if (!name) {
+        errorMsg.push("Name is empty");
+      }
+      if (!email) {
+        errorMsg.push("Email is empty");
+      }
+      if (!password) {
+        errorMsg.push("password is empty");
+      }
+      if (!confirmPassword) {
+        errorMsg.push("confirm Password is empty");
+      }
+      if (password !== confirmPassword) {
+        errorMsg.push("Passwords do not match!!");
+      }
+      //console.log(errorMsg);
+      if (errorMsg.length > 0) {
+        throw new Error();
+      } else {
+        toast({
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+          title: "Validated Successfully",
+        });
+      }
+    } catch (e) {
+      for (let errorM of errorMsg) {
+        toast({
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+          title: errorM,
+        });
+      }
+    } finally {
+      updateSubmit({
+        isLoading: false,
+      });
+    }
+  };
 
   return (
     <VStack
@@ -106,25 +194,47 @@ const Signup = () => {
 
       <FormControl id="photo">
         <FormLabel>Upload your display picture</FormLabel>
-        <Input
-          type="file"
-          accept="image/jpeg,image/png,image/gif"
-          onChange={(e) => {
-            imageHandler(e.target.files[0]);
-          }}
-        />
+        <InputGroup>
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/gif"
+            onChange={(e) => {
+              imageHandler(e.target.files[0]);
+            }}
+          />
+          <InputRightElement>
+            <Button
+              backgroundColor={buttonTexts.imageColor}
+              fontSize="8px"
+              color={"white"}
+              width="20em"
+              height="4em"
+              marginRight="40px"
+              isLoading={loadImage}
+              disabled="true"
+              variant="ghost"
+              //loadingText={buttonTexts.imageUpload}
+            >
+              {buttonTexts.imageUpload}
+            </Button>
+          </InputRightElement>
+        </InputGroup>
       </FormControl>
 
       <FormControl>
-        <Input
+        <Button
           type="submit"
-          value="Sign Up!"
           color="white"
-          backgroundColor="#449"
-          onSubmit={(e) => {
+          width="100%"
+          backgroundColor={submitButton.bgColor}
+          isLoading={submitButton.isLoading}
+          loadingText={submitButton.loadingText}
+          onClick={(e) => {
             submitHandler(e);
           }}
-        />
+        >
+          {submitButton.buttonText}
+        </Button>
       </FormControl>
     </VStack>
   );
