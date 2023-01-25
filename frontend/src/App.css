@@ -3,8 +3,9 @@
 .App {
     min-height: 100vh;
     display: flex;
-    /*background image*/
+    background-image: url('../public/assets/images/bg.gif');
     background-position: center;
+    background-size: cover;
     font-family: 'Ubuntu', Helvetica, sans-serif;
     
 }
