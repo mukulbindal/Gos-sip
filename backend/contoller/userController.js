@@ -62,5 +62,33 @@ const authUser = asyncHandler(async (req, res) => {
   }
 });
 
-const userController = { registerUser, authUser };
+// will accept the keyword as query param
+const searchUser = asyncHandler(async (req, res) => {
+  const keyword = req.query.search;
+  try {
+    if (keyword) {
+      const user = await userModel.find(
+        {
+          $or: [
+            { name: { $regex: keyword, $options: "i" } },
+            { email: { $regex: keyword, $options: "i" } },
+          ],
+
+          _id: { $ne: req.currentUser._id },
+        },
+        {
+          name: 1,
+          email: 1,
+        }
+      );
+      return res.status(200).json(user);
+    } else {
+      throw new Error("Missing parameters");
+    }
+  } catch (e) {
+    res.status(500);
+    throw new Error(e.message);
+  }
+});
+const userController = { registerUser, authUser, searchUser };
 module.exports = userController;

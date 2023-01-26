@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const colors = require("colors");
 const userRouter = require("./routes/userRoutes");
 const errorHandlers = require("./middleware/errorHandlers");
+const chatRoutes = require("./routes/chatRoutes");
 
 connectDB();
 const app = express();
@@ -17,11 +18,14 @@ app.get("/", (req, res) => {
 
 // If route matches api/user, use user Router
 app.use("/api/user", userRouter);
-
+app.use("/api/chat", chatRoutes);
 // If no match found, use notFound handler to handle error
 app.use(errorHandlers.notFound);
 
 // At last if any error, (err param in next function), use below handler
+// But we are not using next(err) anywhere.
+// This works because we are using the express-async-handler
+// which will automatically use next(err) for us.
 app.use(errorHandlers.errorHandler);
 
 // Choose port, default is 8080
