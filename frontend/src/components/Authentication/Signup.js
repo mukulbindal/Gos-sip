@@ -10,6 +10,9 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
+import { useHistory } from "react-router-dom";
+import axios from "axios";
+import urls from "../../config/urls";
 function timeout(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -32,6 +35,7 @@ const Signup = () => {
     imageColor: "",
   });
   const toast = useToast();
+  const history = useHistory();
   const nameHandler = (name) => {
     setName(name);
   };
@@ -72,12 +76,12 @@ const Signup = () => {
     setShow(!show);
   };
   const updateSubmit = (newState) => {
-    console.log(newState, submitButton);
+    //console.log(newState, submitButton);
     for (let key in submitButton) {
       submitButton[key] =
         newState[key] === undefined ? submitButton[key] : newState[key];
     }
-    console.log(newState, submitButton);
+    //console.log(newState, submitButton);
     setsubmitButton(submitButton);
   };
   const submitHandler = async (e) => {
@@ -119,7 +123,32 @@ const Signup = () => {
           title: "Validated Successfully",
         });
       }
+      // start the submit logic
+
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+      const { data } = await axios.post(
+        `${urls.CHAT_HOST}/api/user/register`,
+        { name, email, password, image },
+        config
+      );
+
+      toast({
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+        title: "Registered Successfully",
+      });
+
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      history.push("/chats");
     } catch (e) {
+      //console.log(e);
+      if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
       for (let errorM of errorMsg) {
         toast({
           status: "error",

@@ -7,8 +7,12 @@ import {
   InputGroup,
   InputRightElement,
   StackDivider,
+  useToast,
   VStack,
 } from "@chakra-ui/react";
+import axios from "axios";
+import urls from "../../config/urls";
+import { useHistory } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -26,8 +30,73 @@ const Login = () => {
   const flip = () => {
     setShow(!show);
   };
+  const toast = useToast();
+  const history = useHistory();
+  const submitHandler = async (e) => {
+    let errorMsg = [];
+    try {
+      //console.log(submitButton);
 
-  const submitHandler = (e) => {};
+      //console.log(submitButton);
+      //await timeout(5000);
+
+      if (!email) {
+        errorMsg.push("Email is empty");
+      }
+      if (!password) {
+        errorMsg.push("password is empty");
+      }
+
+      //console.log(errorMsg);
+      if (errorMsg.length > 0) {
+        throw new Error();
+      } else {
+        toast({
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+          title: "Validated Successfully",
+        });
+      }
+      // start the submit logic
+
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+        },
+      };
+      const { data } = await axios.post(
+        `${urls.CHAT_HOST}/api/user/auth`,
+        { email, password },
+        config
+      );
+
+      toast({
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+        title: "Logged in Successfully",
+      });
+
+      localStorage.setItem("userInfo", JSON.stringify(data));
+      history.push("/chats");
+    } catch (e) {
+      //console.log(e);
+      if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
+      for (let errorM of errorMsg) {
+        toast({
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+          position: "bottom",
+          title: errorM,
+        });
+      }
+    } finally {
+    }
+  };
 
   return (
     <VStack
@@ -63,15 +132,18 @@ const Login = () => {
       </FormControl>
 
       <FormControl>
-        <Input
+        <Button
           type="submit"
           value="Login"
           color="white"
           backgroundColor="#449"
-          onSubmit={(e) => {
+          onClick={(e) => {
             submitHandler(e);
           }}
-        />
+          width="100%"
+        >
+          Login
+        </Button>
       </FormControl>
     </VStack>
   );
