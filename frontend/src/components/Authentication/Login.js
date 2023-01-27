@@ -12,7 +12,7 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import urls from "../../config/urls";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -31,7 +31,7 @@ const Login = () => {
     setShow(!show);
   };
   const toast = useToast();
-  const history = useHistory();
+  const navigate = useNavigate();
   const submitHandler = async (e) => {
     let errorMsg = [];
     try {
@@ -81,7 +81,7 @@ const Login = () => {
       });
 
       localStorage.setItem("userInfo", JSON.stringify(data));
-      history.push("/chats");
+      navigate("/chats");
     } catch (e) {
       //console.log(e);
       if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);

@@ -2,6 +2,7 @@ import {
   Button,
   FormControl,
   FormLabel,
+  Image,
   Input,
   InputGroup,
   InputRightElement,
@@ -10,7 +11,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import urls from "../../config/urls";
 function timeout(ms) {
@@ -35,7 +36,7 @@ const Signup = () => {
     imageColor: "",
   });
   const toast = useToast();
-  const history = useHistory();
+  const navigate = useNavigate();
   const nameHandler = (name) => {
     setName(name);
   };
@@ -58,13 +59,37 @@ const Signup = () => {
       buttonTexts.imageColor = "#449";
       setbuttonTexts(buttonTexts);
       setImage(image);
-      // To be removed
-      await timeout(5000);
+
+      //(image)=>{
+      const reader = new FileReader();
+      reader.readAsDataURL(image);
+      reader.onload = () => {
+        try {
+          const result = reader.result;
+          console.log(result.length);
+          setImage(reader.result);
+          console.log("Inside Image handler::", image);
+          buttonTexts.imageUpload = "Uploaded";
+          buttonTexts.imageColor = "#494";
+          setbuttonTexts(buttonTexts);
+          setLoadImage(false);
+        } catch (error) {
+          console.lof(error);
+          buttonTexts.imageUpload = "Failed";
+          buttonTexts.imageColor = "#944";
+          setbuttonTexts(buttonTexts);
+          setLoadImage(false);
+        }
+      };
+      reader.onerror = () => {
+        buttonTexts.imageUpload = "Failed";
+        buttonTexts.imageColor = "#944";
+        setbuttonTexts(buttonTexts);
+        setLoadImage(false);
+      };
+      //}
+
       //if (image) throw new Error();
-      buttonTexts.imageUpload = "Uploaded";
-      buttonTexts.imageColor = "#494";
-      setbuttonTexts(buttonTexts);
-      setLoadImage(false);
     } catch (e) {
       buttonTexts.imageUpload = "Failed";
       buttonTexts.imageColor = "#944";
@@ -132,7 +157,7 @@ const Signup = () => {
       };
       const { data } = await axios.post(
         `${urls.CHAT_HOST}/api/user/register`,
-        { name, email, password, image },
+        { name, email, password, pic: image },
         config
       );
 
@@ -145,7 +170,7 @@ const Signup = () => {
       });
 
       localStorage.setItem("userInfo", JSON.stringify(data));
-      history.push("/chats");
+      navigate("/chats");
     } catch (e) {
       //console.log(e);
       if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
