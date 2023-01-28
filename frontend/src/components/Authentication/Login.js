@@ -13,10 +13,11 @@ import {
 import axios from "axios";
 import urls from "../../config/urls";
 import { useNavigate } from "react-router-dom";
+import { ChatState } from "../../context/chatProvider";
 const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-
+  const { user, setUser } = ChatState();
   const [show, setShow] = useState(false);
 
   const emailHandler = (email) => {
@@ -32,6 +33,7 @@ const Login = () => {
   };
   const toast = useToast();
   const navigate = useNavigate();
+
   const submitHandler = async (e) => {
     let errorMsg = [];
     try {
@@ -81,6 +83,7 @@ const Login = () => {
       });
 
       localStorage.setItem("userInfo", JSON.stringify(data));
+      setUser(data);
       navigate("/chats");
     } catch (e) {
       //console.log(e);

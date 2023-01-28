@@ -28,6 +28,7 @@ import { useNavigate } from "react-router-dom";
 import ProfileModal from "./ProfileModal";
 import axios from "axios";
 import ChatLoading from "./ChatLoading";
+import ChatUser from "../Chat/ChatUser";
 const SideDrawer = () => {
   const [search, setsearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -74,6 +75,9 @@ const SideDrawer = () => {
       setLoading(false);
     } finally {
     }
+  };
+  const chatHandler = (clickedUser) => {
+    console.log("Clicked on " + JSON.stringify(clickedUser));
   };
   const { isOpen, onClose, onOpen } = useDisclosure();
   return (
@@ -148,7 +152,15 @@ const SideDrawer = () => {
                 <SearchIcon></SearchIcon>
               </Button>
             </Box>
-            {loading ? <ChatLoading /> : searchResult?.map()}
+            {loading ? (
+              <ChatLoading />
+            ) : (
+              searchResult?.map((user) => {
+                return (
+                  <ChatUser key={user._id} user={user} handler={chatHandler} />
+                );
+              })
+            )}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

@@ -79,6 +79,7 @@ const searchUser = asyncHandler(async (req, res) => {
         {
           name: 1,
           email: 1,
+          pic: 1,
         }
       );
       return res.status(200).json(user);

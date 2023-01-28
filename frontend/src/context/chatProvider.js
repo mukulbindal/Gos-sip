@@ -11,7 +11,7 @@ const ChatProvider = ({ children }) => {
     if (nowUser) {
       setUser(nowUser);
     }
-  }, [user]);
+  }, []);
 
   return (
     <ChatContext.Provider value={{ user, setUser }}>
