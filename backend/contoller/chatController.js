@@ -55,7 +55,19 @@ const fetchChats = asyncHandler(async (req, res) => {
   try {
     //console.log("insode fetch");
     chatModel
-      .find({ users: { $elemMatch: { $eq: req.currentUser._id } } })
+      .find({
+        users: { $elemMatch: { $eq: req.currentUser._id } },
+        $or: [
+          {
+            isGroupChat: false,
+            latestMessage: { $exists: true },
+          },
+          {
+            isGroupChat: true,
+            groupAdmin: req.currentUser._id,
+          },
+        ],
+      })
       .populate("users", "-password")
       .populate("groupAdmin", "-password")
       .populate("latestMessage")

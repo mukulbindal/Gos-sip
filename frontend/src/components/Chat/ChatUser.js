@@ -1,4 +1,4 @@
-import { Avatar, AvatarBadge, Box, Image, Text } from "@chakra-ui/react";
+import { Avatar, Box, Text } from "@chakra-ui/react";
 import React from "react";
 
 const ChatUser = ({ user, handler }) => {

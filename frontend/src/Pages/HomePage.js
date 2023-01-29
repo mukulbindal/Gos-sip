@@ -13,13 +13,13 @@ import Login from "../components/Authentication/Login";
 import Signup from "../components/Authentication/Signup";
 import { useNavigate } from "react-router-dom";
 import currentUser from "../config/currentUser";
+import { ChatState } from "../context/chatProvider";
 
 const HomePage = () => {
-  //const { user } = ChatState();
-  const user = currentUser();
+  const chatState = ChatState();
   const navigate = useNavigate();
   useEffect(() => {
-    if (user) {
+    if (chatState.user) {
       navigate("/chats");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

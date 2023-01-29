@@ -13,6 +13,7 @@ import {
   MenuDivider,
   MenuItem,
   MenuList,
+  Spinner,
   Text,
   Tooltip,
   useDisclosure,
@@ -21,7 +22,6 @@ import {
 import { BellIcon, ChevronDownIcon, SearchIcon } from "@chakra-ui/icons";
 import React from "react";
 import { useState } from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { ChatState } from "../../context/chatProvider";
 import removeUser from "../../config/removeUser";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +33,14 @@ const SideDrawer = () => {
   const [search, setsearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingChat, setLoadingChat] = useState();
-  const { user } = ChatState();
+  const [loadingChat, setLoadingChat] = useState(false);
+  const chatState = ChatState();
   const navigate = useNavigate();
   const logoutHandler = () => {
-    //setUser({});
     removeUser();
+    chatState.setUser(null);
+    chatState.setSelectedChat(null);
+    chatState.setChats([]);
     navigate("/");
   };
   const toast = useToast();
@@ -52,7 +54,7 @@ const SideDrawer = () => {
 
       const config = {
         headers: {
-          Authorization: `Bearer ${user.token}`,
+          Authorization: `Bearer ${chatState.user.token}`,
         },
       };
 
@@ -76,8 +78,38 @@ const SideDrawer = () => {
     } finally {
     }
   };
-  const chatHandler = (clickedUser) => {
-    console.log("Clicked on " + JSON.stringify(clickedUser));
+  const chatHandler = async (userId) => {
+    try {
+      setLoadingChat(true);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${chatState.user.token}`,
+        },
+      };
+
+      const { data } = await axios.post("/api/chat", { userId }, config);
+
+      if (
+        !chatState.chats?.find((c) => {
+          return c._id === data._id;
+        })
+      ) {
+        chatState.setChats([data, ...chatState.chats]);
+      }
+      chatState.setSelectedChat(data);
+    } catch (error) {
+      toast({
+        status: "error",
+        title: error.message,
+        duration: 3000,
+        isClosable: true,
+        position: "bottom-left",
+      });
+    } finally {
+      setLoadingChat(false);
+      onClose();
+    }
   };
   const { isOpen, onClose, onOpen } = useDisclosure();
   return (
@@ -117,12 +149,12 @@ const SideDrawer = () => {
               <Avatar
                 size="sm"
                 cursor="pointer"
-                name={user.name}
-                src={user.pic}
+                name={chatState.user.name}
+                src={chatState.user.pic}
               />
             </MenuButton>
             <MenuList margin={2}>
-              <ProfileModal user={user}>
+              <ProfileModal user={chatState.user}>
                 <MenuItem>My Profile</MenuItem>
               </ProfileModal>
               <MenuDivider />
@@ -157,10 +189,18 @@ const SideDrawer = () => {
             ) : (
               searchResult?.map((user) => {
                 return (
-                  <ChatUser key={user._id} user={user} handler={chatHandler} />
+                  <ChatUser
+                    key={user._id}
+                    user={user}
+                    handler={() => {
+                      chatHandler(user._id);
+                    }}
+                  />
                 );
               })
             )}
+
+            {loadingChat && <Spinner margin={"auto"} display="flex" />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

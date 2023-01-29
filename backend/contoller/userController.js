@@ -65,9 +65,10 @@ const authUser = asyncHandler(async (req, res) => {
 // will accept the keyword as query param
 const searchUser = asyncHandler(async (req, res) => {
   const keyword = req.query.search;
+  let limit = req.query.limit;
   try {
     if (keyword) {
-      const user = await userModel.find(
+      let user = await userModel.find(
         {
           $or: [
             { name: { $regex: keyword, $options: "i" } },
@@ -82,6 +83,10 @@ const searchUser = asyncHandler(async (req, res) => {
           pic: 1,
         }
       );
+      if (limit) {
+        limit = parseInt(limit);
+        user = user.slice(0, Math.min(limit, user.length));
+      }
       return res.status(200).json(user);
     } else {
       throw new Error("Missing parameters");

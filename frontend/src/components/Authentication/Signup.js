@@ -14,10 +14,11 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import urls from "../../config/urls";
-function timeout(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
+import setCurrentUser from "../../config/setCurrentUser";
+import { ChatState } from "../../context/chatProvider";
+
 const Signup = () => {
+  const chatState = ChatState();
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -169,7 +170,8 @@ const Signup = () => {
         title: "Registered Successfully",
       });
 
-      localStorage.setItem("userInfo", JSON.stringify(data));
+      const user = setCurrentUser(data);
+      chatState.setUser(user);
       navigate("/chats");
     } catch (e) {
       //console.log(e);

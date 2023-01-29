@@ -14,10 +14,12 @@ import axios from "axios";
 import urls from "../../config/urls";
 import { useNavigate } from "react-router-dom";
 import { ChatState } from "../../context/chatProvider";
+import setCurrentUser from "../../config/setCurrentUser";
+import currentUser from "../../config/currentUser";
 const Login = () => {
+  const chatState = ChatState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const { user, setUser } = ChatState();
   const [show, setShow] = useState(false);
 
   const emailHandler = (email) => {
@@ -81,9 +83,9 @@ const Login = () => {
         position: "bottom",
         title: "Logged in Successfully",
       });
-
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      setUser(data);
+      console.log("here");
+      const user = setCurrentUser(data);
+      chatState.setUser(user);
       navigate("/chats");
     } catch (e) {
       //console.log(e);
@@ -107,7 +109,7 @@ const Login = () => {
       spacing={3}
       align="stretch"
     >
-      <FormControl id="email" isRequired>
+      <FormControl id="login-email" isRequired>
         <FormLabel>Enter your Email / Username</FormLabel>
         <Input
           type="text"
@@ -117,7 +119,7 @@ const Login = () => {
         />
       </FormControl>
 
-      <FormControl id="confirm-password" isRequired>
+      <FormControl id="login-password" isRequired>
         <FormLabel>Password</FormLabel>
         <InputGroup>
           <Input
