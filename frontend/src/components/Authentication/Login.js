@@ -12,11 +12,14 @@ import {
 } from "@chakra-ui/react";
 import axios from "axios";
 import urls from "../../config/urls";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { ChatState } from "../../context/chatProvider";
+import setCurrentUser from "../../config/setCurrentUser";
+import currentUser from "../../config/currentUser";
 const Login = () => {
+  const chatState = ChatState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-
   const [show, setShow] = useState(false);
 
   const emailHandler = (email) => {
@@ -31,7 +34,8 @@ const Login = () => {
     setShow(!show);
   };
   const toast = useToast();
-  const history = useHistory();
+  const navigate = useNavigate();
+
   const submitHandler = async (e) => {
     let errorMsg = [];
     try {
@@ -79,9 +83,10 @@ const Login = () => {
         position: "bottom",
         title: "Logged in Successfully",
       });
-
-      localStorage.setItem("userInfo", JSON.stringify(data));
-      history.push("/chats");
+      console.log("here");
+      const user = setCurrentUser(data);
+      chatState.setUser(user);
+      navigate("/chats");
     } catch (e) {
       //console.log(e);
       if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
@@ -104,7 +109,7 @@ const Login = () => {
       spacing={3}
       align="stretch"
     >
-      <FormControl id="email" isRequired>
+      <FormControl id="login-email" isRequired>
         <FormLabel>Enter your Email / Username</FormLabel>
         <Input
           type="text"
@@ -114,7 +119,7 @@ const Login = () => {
         />
       </FormControl>
 
-      <FormControl id="confirm-password" isRequired>
+      <FormControl id="login-password" isRequired>
         <FormLabel>Password</FormLabel>
         <InputGroup>
           <Input
