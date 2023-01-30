@@ -87,7 +87,8 @@ const fetchChats = asyncHandler(async (req, res) => {
 
 const createGroup = asyncHandler(async (req, res) => {
   try {
-    const { users, chatName, chatId } = req.body;
+    const { users, chatName, chatId, leaveGroup } = req.body;
+    console.log(req.body);
     if (!users || !chatName) {
       throw new BadRequestError("Send all the fields");
     }
@@ -95,20 +96,35 @@ const createGroup = asyncHandler(async (req, res) => {
     if (users.length < 2) {
       throw new BadRequestError("Group needs more than 2 users");
     }
-    if (!chatId) users.push(req.currentUser);
+    if (!chatId && !leaveGroup) users.push(req.currentUser);
     let groupChat = null;
     if (!chatId) {
       groupChat = await chatModel.create({
         chatName,
         isGroupChat: true,
         users,
-        groupAdmin: req.currentUser,
+        groupAdmin: req.currentUser._id,
       });
     } else {
-      groupChat = await chatModel.findById(chatId);
+      if (leaveGroup) {
+        groupChat = await chatModel.findOne({
+          _id: chatId,
+        });
+      } else {
+        groupChat = await chatModel.findOne({
+          _id: chatId,
+          groupAdmin: req.currentUser._id,
+        });
+      }
       groupChat.chatName = chatName;
+      // if removing group admin, assign new admin
+      console.log(users);
+      if (leaveGroup) {
+        groupChat.groupAdmin = users[0]?._id || null;
+      }
       groupChat.users = users;
-      await groupChat.save();
+      groupChat = await groupChat.save();
+      console.log(groupChat);
     }
 
     const fullGroup = await chatModel

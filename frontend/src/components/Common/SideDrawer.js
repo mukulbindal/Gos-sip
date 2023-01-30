@@ -20,7 +20,7 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import { BellIcon, ChevronDownIcon, SearchIcon } from "@chakra-ui/icons";
-import React from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import { ChatState } from "../../context/chatProvider";
 import removeUser from "../../config/removeUser";
@@ -29,6 +29,7 @@ import ProfileModal from "./ProfileModal";
 import axios from "axios";
 import ChatLoading from "./ChatLoading";
 import ChatUser from "../Chat/ChatUser";
+import { debounce } from "lodash";
 const SideDrawer = () => {
   const [search, setsearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -44,12 +45,25 @@ const SideDrawer = () => {
     navigate("/");
   };
   const toast = useToast();
-  const handleSearch = async () => {
+  const delayedQuery = useCallback(
+    debounce((q) => handleSearch(q), 500),
+    []
+  );
+  useEffect(() => {
+    if (!search) {
+      setSearchResult([]);
+    }
+  }, [search]);
+  const handleSearch = async (query, button) => {
     try {
+      //console.log("query is:", query);
+      if ((!query || query === search) && !button) return;
+
       setSearchResult([]);
       setLoading(true);
-      if (!search) {
-        throw new Error("Please enter something to search");
+      if ((!query || !query.trim()) && (!search || !search.trim())) {
+        if (button) throw new Error("Please enter something to search");
+        else return;
       }
 
       const config = {
@@ -58,7 +72,10 @@ const SideDrawer = () => {
         },
       };
 
-      const { data } = await axios.get(`/api/user?search=${search}`, config);
+      const { data } = await axios.get(
+        `/api/user?search=${query.trim() || search.trim()}`,
+        config
+      );
 
       if (data.length === 0) {
         throw new Error("No user found!");
@@ -76,6 +93,7 @@ const SideDrawer = () => {
       });
       setLoading(false);
     } finally {
+      setLoading(false);
     }
   };
   const chatHandler = async (userId) => {
@@ -177,10 +195,16 @@ const SideDrawer = () => {
                 marginRight={2}
                 value={search}
                 onChange={(e) => {
+                  //console.log(e.key);
                   setsearch(e.target.value);
+                  delayedQuery(e.target.value);
                 }}
               />
-              <Button onClick={handleSearch}>
+              <Button
+                onClick={() => {
+                  handleSearch(search, true);
+                }}
+              >
                 <SearchIcon></SearchIcon>
               </Button>
             </Box>
