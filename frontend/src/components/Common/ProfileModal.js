@@ -45,7 +45,7 @@ const ProfileModal = ({ user, children }) => {
             <Image
               borderRadius="full"
               boxSize="150px"
-              src={user.pic ? user.pic : ""}
+              src={user.pic ? user.pic : "./assets/images/default_user.webp"}
               alt={user.name}
             />
             {/* Need to work @todo */}

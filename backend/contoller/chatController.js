@@ -87,7 +87,7 @@ const fetchChats = asyncHandler(async (req, res) => {
 
 const createGroup = asyncHandler(async (req, res) => {
   try {
-    const { users, chatName } = req.body;
+    const { users, chatName, chatId } = req.body;
     if (!users || !chatName) {
       throw new BadRequestError("Send all the fields");
     }
@@ -95,15 +95,21 @@ const createGroup = asyncHandler(async (req, res) => {
     if (users.length < 2) {
       throw new BadRequestError("Group needs more than 2 users");
     }
-
-    users.push(req.currentUser);
-
-    const groupChat = await chatModel.create({
-      chatName,
-      isGroupChat: true,
-      users,
-      groupAdmin: req.currentUser,
-    });
+    if (!chatId) users.push(req.currentUser);
+    let groupChat = null;
+    if (!chatId) {
+      groupChat = await chatModel.create({
+        chatName,
+        isGroupChat: true,
+        users,
+        groupAdmin: req.currentUser,
+      });
+    } else {
+      groupChat = await chatModel.findById(chatId);
+      groupChat.chatName = chatName;
+      groupChat.users = users;
+      await groupChat.save();
+    }
 
     const fullGroup = await chatModel
       .findById(groupChat._id)

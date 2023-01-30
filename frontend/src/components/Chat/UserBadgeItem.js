@@ -1,6 +1,7 @@
 import { CloseIcon } from "@chakra-ui/icons";
-import { Badge, Box, Stack, Text } from "@chakra-ui/react";
+import { Badge, Box, Stack, Text, Tooltip } from "@chakra-ui/react";
 import React from "react";
+import ProfileModal from "../Common/ProfileModal";
 
 const UserBadgeItem = ({ user, handler }) => {
   return (
@@ -14,16 +15,19 @@ const UserBadgeItem = ({ user, handler }) => {
       backgroundColor="rgba(180, 180, 220, 0.7)"
       borderRadius="lg"
     >
-      <Text>
-        {user.name}{" "}
-        <CloseIcon
-          onClick={() => {
-            handler(user);
-          }}
-          paddingLeft={1}
-          cursor="pointer"
-        />
-      </Text>
+      <ProfileModal user={user}>
+        <Tooltip label="View Profile" hasArrow placement="auto">
+          <Text cursor={"pointer"}>{user.name}</Text>
+        </Tooltip>
+      </ProfileModal>{" "}
+      <CloseIcon
+        onClick={() => {
+          handler(user);
+        }}
+        paddingLeft={1}
+        cursor="pointer"
+        margin={"auto"}
+      />
     </Box>
   );
 };

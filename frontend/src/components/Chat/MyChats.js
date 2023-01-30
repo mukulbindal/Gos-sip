@@ -47,7 +47,7 @@ const MyChats = () => {
       alignItems={"center"}
       padding={3}
       backgroundColor="rgba(200,200,255, 0.5)"
-      width={{ base: "100%", md: "25%" }}
+      width={{ base: "100%", md: "35%" }}
       borderRadius="lg"
       borderWidth={"1px"}
     >
