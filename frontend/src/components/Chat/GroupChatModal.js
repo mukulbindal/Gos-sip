@@ -20,7 +20,7 @@ import { ChatState } from "../../context/chatProvider";
 import ChatUser from "./ChatUser";
 import UserBadgeItem from "./UserBadgeItem";
 
-const GroupChatModal = ({ children }) => {
+const GroupChatModal = ({ children, mode, isAdmin }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [groupChatName, setgroupChatName] = useState();
   const [selectedUsers, setselectedUsers] = useState([]);
@@ -135,7 +135,9 @@ const GroupChatModal = ({ children }) => {
         <ModalOverlay />
         <ModalContent>
           <ModalHeader display={"flex"} justifyContent="center">
-            Create New Group Chat
+            {mode === "edit"
+              ? chatState.selectedChat.chatName
+              : "Create New Group Chat"}
           </ModalHeader>
           <ModalCloseButton />
           <ModalBody
