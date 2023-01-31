@@ -131,7 +131,9 @@ const MyChats = () => {
                   </Text>
                   <Text fontSize={"12px"}>
                     {chat.latestMessage
-                      ? chat.latestMessage
+                      ? (chat.latestMessage.sender._id === chatState.user._id
+                          ? "You: "
+                          : "") + chat.latestMessage.content
                       : "Start a new conversation"}
                   </Text>
                 </Box>
