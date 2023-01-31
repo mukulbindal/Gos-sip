@@ -7,7 +7,8 @@ import {
   useToast,
 } from "@chakra-ui/react";
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useState } from "react";
 import { ChatState } from "../../context/chatProvider";
 import Messages from "./Messages";
 
@@ -23,23 +24,57 @@ const ChatBoxBody = () => {
 
   const toast = useToast();
   useEffect(() => {
-    fetchMessages();
+    setLoadingStates({ ...loadingStates, msgLoading: true });
+    setMessageList([]);
+    delayedFetchMessages(chatState.selectedChat);
+    //setMessageList(data);
   }, [chatState.selectedChat]);
-  const fetchMessages = async () => {
-    try {
-      setLoadingStates({ ...loadingStates, msgLoading: true });
-      setMessageList([]);
-      const config = {
-        headers: {
-          Authorization: `Bearer ${chatState.user.token}`,
-        },
-      };
 
-      const { data } = await axios.get(
-        `/api/message/${chatState.selectedChat._id}`,
-        config
-      );
-      setMessageList(data);
+  const delayedFetchMessages = useCallback(
+    debounce((currentChat) => {
+      fetchMessages(currentChat);
+    }, 2000),
+    []
+  );
+  const fetchMessages = (currentChat) => {
+    try {
+      setMessageList([]);
+      // console.log(
+      //   "requesting for ",
+      //   currentChat?.isGroupChat
+      //     ? currentChat?.chatName
+      //     : currentChat?.users[0].name + "," + currentChat?.users[1].name
+      // );
+      const { data } = axios
+        .get(`/api/message/${currentChat._id}`, {
+          headers: {
+            Authorization: `Bearer ${chatState.user.token}`,
+          },
+        })
+        .then(({ data }) => {
+          if (data.length > 0 && data[0].chat._id === currentChat._id) {
+            setMessageList(data);
+          }
+          setLoadingStates({ ...loadingStates, msgLoading: false });
+        })
+        .catch((error) => {
+          toast({
+            status: "error",
+            title: error.message,
+            duration: 3000,
+            isClosable: true,
+            position: "top",
+          });
+        });
+      //if (data.length > 0 && data[0].chat._id === chatState.selectedChat._id)
+
+      //console.log("controller::" + controller);
+      // console.log(
+      //   "data for ",
+      //   currentChat?.isGroupChat
+      //     ? currentChat?.chatName
+      //     : currentChat?.users[0].name + "," + currentChat?.users[1].name
+      // );
     } catch (error) {
       toast({
         status: "error",
@@ -49,10 +84,9 @@ const ChatBoxBody = () => {
         position: "top",
       });
     } finally {
-      setLoadingStates({ ...loadingStates, msgLoading: false });
     }
   };
-  const handleSend = async (msg) => {
+  const handleSend = (msg) => {
     if (!msg) {
       msg = message;
     }
@@ -73,9 +107,20 @@ const ChatBoxBody = () => {
         chat: chatState.selectedChat._id,
       };
 
-      const { data } = await axios.post("/api/message/send", reqBody, config);
-      setMessageList([...messageList, data]);
-      console.log(data);
+      axios
+        .post("/api/message/send", reqBody, config)
+        .then(({ data }) => {
+          setMessageList([...messageList, data]);
+        })
+        .catch((error) => {
+          toast({
+            status: "error",
+            title: error.message,
+            duration: 3000,
+            isClosable: true,
+            position: "top",
+          });
+        });
     } catch (error) {
       toast({
         status: "error",
@@ -89,7 +134,7 @@ const ChatBoxBody = () => {
     }
   };
   return (
-    <Box height={"90%"} position="relative">
+    <Box height={"90%"} position="relative" overflowY={"hidden"}>
       <Messages
         messageList={messageList}
         messagesLoading={loadingStates.msgLoading}

@@ -6,6 +6,7 @@ const colors = require("colors");
 const userRouter = require("./routes/userRoutes");
 const errorHandlers = require("./middleware/errorHandlers");
 const chatRoutes = require("./routes/chatRoutes");
+const messageRoutes = require("./routes/messageRoutes");
 
 connectDB();
 const app = express();
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 // If route matches api/user, use user Router
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
 // If no match found, use notFound handler to handle error
 app.use(errorHandlers.notFound);
 
