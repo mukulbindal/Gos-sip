@@ -86,6 +86,16 @@ const ChatBoxBody = () => {
     } finally {
     }
   };
+  const updateTheChatList = (message) => {
+    const chatToBeModified = chatState.chats?.find(
+      (chat) => chat._id === message.chat._id
+    );
+    chatToBeModified.latestMessage = message;
+    chatState.setChats([
+      chatToBeModified,
+      ...chatState.chats?.filter((chat) => chat._id !== message.chat._id),
+    ]);
+  };
   const handleSend = (msg) => {
     if (!msg) {
       msg = message;
@@ -111,6 +121,7 @@ const ChatBoxBody = () => {
         .post("/api/message/send", reqBody, config)
         .then(({ data }) => {
           setMessageList([...messageList, data]);
+          updateTheChatList(data);
         })
         .catch((error) => {
           toast({
@@ -141,7 +152,7 @@ const ChatBoxBody = () => {
       />
       <FormControl
         position="absolute"
-        bottom="1%"
+        bottom="3%"
         display={"flex"}
         paddingLeft="2%"
         paddingRight={"2%"}
