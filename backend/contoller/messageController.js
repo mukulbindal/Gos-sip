@@ -18,18 +18,21 @@ const sendMessage = asyncHandler(async (req, res) => {
       chat,
     });
     await message.save();
-    let fullMessage = await chatModel.populate(message, "chat");
-    fullMessage = await userModel.populate(fullMessage, "sender");
+    await message.populate("chat");
+    await message.populate("sender", "name email");
+    //let fullMessage = await chatModel.populate(message, "chat");
+    //fullMessage = await fullMessage.populate("sender", "name email");
+    //await messa
     await chatModel.findByIdAndUpdate(
-      fullMessage.chat._id,
+      message.chat._id,
       {
-        latestMessage: message,
+        latestMessage: message._id,
       },
       { new: true }
     );
 
     //console.log(message);
-    res.json(fullMessage);
+    res.json(message);
   } catch (error) {
     res.status(error.statusCode || 500);
     throw new Error(error.message);

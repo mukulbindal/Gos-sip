@@ -12,7 +12,12 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ChatState } from "../../context/chatProvider";
 import Messages from "./Messages";
 
-const ChatBoxBody = () => {
+const ChatBoxBody = ({
+  sendLiveMessage,
+  updateTheChatList,
+  bodyRef,
+  socket,
+}) => {
   const chatState = ChatState();
   const [message, setMessage] = useState("");
   const [loadingStates, setLoadingStates] = useState({ msgLoading: false });
@@ -21,6 +26,17 @@ const ChatBoxBody = () => {
     setMessage(msg);
     //console.log(msg);
   };
+  //useEffect(() => {
+  socket.on("get-message", (messageData) => {
+    let previousMessageList = messageList;
+    console.log("got message", messageData, chatState.selectedChat?._id);
+    if (messageData.chat._id === chatState.selectedChat?._id) {
+      setMessageList([...previousMessageList, messageData]);
+    } else {
+      updateTheChatList(messageData);
+    }
+  });
+  //}, []);
 
   const toast = useToast();
   useEffect(() => {
@@ -29,7 +45,9 @@ const ChatBoxBody = () => {
     delayedFetchMessages(chatState.selectedChat);
     //setMessageList(data);
   }, [chatState.selectedChat]);
-
+  // useEffect(() => {
+  //   setMessageList(messageList);
+  // }, [messageList]);
   const delayedFetchMessages = useCallback(
     debounce((currentChat) => {
       fetchMessages(currentChat);
@@ -86,16 +104,7 @@ const ChatBoxBody = () => {
     } finally {
     }
   };
-  const updateTheChatList = (message) => {
-    const chatToBeModified = chatState.chats?.find(
-      (chat) => chat._id === message.chat._id
-    );
-    chatToBeModified.latestMessage = message;
-    chatState.setChats([
-      chatToBeModified,
-      ...chatState.chats?.filter((chat) => chat._id !== message.chat._id),
-    ]);
-  };
+
   const handleSend = (msg) => {
     if (!msg) {
       msg = message;
@@ -122,6 +131,7 @@ const ChatBoxBody = () => {
         .then(({ data }) => {
           setMessageList([...messageList, data]);
           updateTheChatList(data);
+          sendLiveMessage(data);
         })
         .catch((error) => {
           toast({

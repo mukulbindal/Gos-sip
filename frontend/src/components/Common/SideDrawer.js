@@ -30,6 +30,7 @@ import axios from "axios";
 import ChatLoading from "./ChatLoading";
 import ChatUser from "../Chat/ChatUser";
 import { debounce } from "lodash";
+import Logo from "./Logo";
 const SideDrawer = () => {
   const [search, setsearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
@@ -149,10 +150,8 @@ const SideDrawer = () => {
             </Text>
           </Button>
         </Tooltip>
-        {/* Later replace it with a Logo component having href for home page */}
-        <Text fontSize="2xl" fontFamily="Ubuntu">
-          BalloonChat
-        </Text>
+
+        <Logo />
 
         <div>
           <Menu>

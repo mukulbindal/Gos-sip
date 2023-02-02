@@ -33,7 +33,9 @@ const Messages = ({ messageList, messagesLoading }) => {
                   <Avatar
                     size={"sm"}
                     key={msg.sender._id}
-                    src={msg.sender.pic}
+                    src={
+                      "http://localhost:4700/api/user/image/" + msg.sender._id
+                    }
                     name={msg.sender.name}
                     marginLeft="1%"
                   ></Avatar>

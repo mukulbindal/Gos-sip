@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const generateToken = require("../config/generateToken");
+const BadRequestError = require("../Exceptions/BadRequestError");
 const userModel = require("../models/userModel");
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -96,5 +97,30 @@ const searchUser = asyncHandler(async (req, res) => {
     throw new Error(e.message);
   }
 });
-const userController = { registerUser, authUser, searchUser };
+
+const getImage = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      throw new BadRequestError();
+    }
+
+    const image = await userModel.findById(userId, { pic: 1, _id: 0 });
+    dataurl = image.pic;
+    if (!dataurl) throw new Error("no pic found");
+    let arr = dataurl.split(",");
+    let mime = arr[0].match(/:(.*?);/)[1];
+    console.log(mime);
+    let img = Buffer.from(arr[1], "base64");
+    res.writeHead(200, {
+      "Content-Type": mime,
+      "Content-Length": img.length,
+    });
+    res.end(img);
+  } catch (e) {
+    res.status(500);
+    throw new Error(e.message);
+  }
+});
+const userController = { registerUser, authUser, searchUser, getImage };
 module.exports = userController;
