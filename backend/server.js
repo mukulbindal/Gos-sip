@@ -8,19 +8,34 @@ const errorHandlers = require("./middleware/errorHandlers");
 const chatRoutes = require("./routes/chatRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const socketIO = require("socket.io");
+const path = require("path");
 connectDB();
 const app = express();
 app.use(express.json({ limit: "2mb" })); // to accept json data
 app.use(express.urlencoded({ limit: "2mb" }));
-// empty route to ensure app is working
-app.get("/", (req, res) => {
-  res.send("Page is working");
-});
 
 // If route matches api/user, use user Router
 app.use("/api/user", userRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
+
+// Integration
+const __dirname1 = path.resolve();
+
+if (process.env.NODE_ENV !== "production") {
+  app.use(express.static(path.join(__dirname1, "/frontend/build")));
+
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
+  );
+} else {
+  // empty route to ensure app is working
+  app.get("/", (req, res) => {
+    res.send("API is running..");
+  });
+}
+// Integration
+
 // If no match found, use notFound handler to handle error
 app.use(errorHandlers.notFound);
 

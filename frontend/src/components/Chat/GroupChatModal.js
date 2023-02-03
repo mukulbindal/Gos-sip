@@ -172,7 +172,7 @@ const GroupChatModal = ({ children, mode, isAdmin, disabledMode }) => {
           chatState.setChats([data, ...newChats]);
           chatState.setSelectedChat(data);
         } else {
-          chatState.setChats(newChats);
+          chatState.setChats(chatState.chats);
           chatState.setSelectedChat(null);
         }
       }

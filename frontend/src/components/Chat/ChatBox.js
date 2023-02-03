@@ -15,10 +15,17 @@ const ChatBox = () => {
     socket.emit("new-message", messageData);
   };
   const updateTheChatList = (message) => {
-    const chatToBeModified = chatState.chats?.find(
+    console.log("updating the chat list...", chatState.chats);
+    let chatToBeModified = chatState.chats?.find(
       (chat) => chat._id === message.chat._id
     );
+    if (!chatToBeModified) {
+      chatToBeModified = message.chat;
+    }
     chatToBeModified.latestMessage = message;
+    console.log(chatToBeModified, message, chatState.chats);
+
+    //chatToBeModified.latestMessage = message;
     chatState.setChats([
       chatToBeModified,
       ...chatState.chats?.filter((chat) => chat._id !== message.chat._id),
@@ -31,6 +38,10 @@ const ChatBox = () => {
       console.log("connected");
 
       setisUserConnected(true);
+    });
+    socket.on("get-message", (messageData) => {
+      console.log("got message", messageData);
+      updateTheChatList(messageData);
     });
   }, []);
 
@@ -51,7 +62,6 @@ const ChatBox = () => {
           <ChatBoxBody
             sendLiveMessage={sendLiveMessage}
             updateTheChatList={updateTheChatList}
-            bodyRef={bodyRef}
             socket={socket}
           ></ChatBoxBody>
         </>

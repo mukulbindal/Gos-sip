@@ -12,12 +12,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { ChatState } from "../../context/chatProvider";
 import Messages from "./Messages";
 
-const ChatBoxBody = ({
-  sendLiveMessage,
-  updateTheChatList,
-  bodyRef,
-  socket,
-}) => {
+const ChatBoxBody = ({ sendLiveMessage, updateTheChatList, socket }) => {
   const chatState = ChatState();
   const [message, setMessage] = useState("");
   const [loadingStates, setLoadingStates] = useState({ msgLoading: false });
@@ -28,15 +23,13 @@ const ChatBoxBody = ({
   };
   //useEffect(() => {
   socket.on("get-message", (messageData) => {
-    let previousMessageList = messageList;
-    console.log("got message", messageData, chatState.selectedChat?._id);
+    console.log("got message", messageData);
     if (messageData.chat._id === chatState.selectedChat?._id) {
-      setMessageList([...previousMessageList, messageData]);
-    } else {
-      updateTheChatList(messageData);
+      setMessageList([...messageList, messageData]);
     }
+    updateTheChatList(messageData);
   });
-  //}, []);
+  //}, [socket]);
 
   const toast = useToast();
   useEffect(() => {

@@ -106,8 +106,8 @@ const getImage = asyncHandler(async (req, res) => {
     }
 
     const image = await userModel.findById(userId, { pic: 1, _id: 0 });
-    dataurl = image.pic;
-    if (!dataurl) throw new Error("no pic found");
+    let dataurl = image.pic;
+    if (!dataurl) return res.send("");
     let arr = dataurl.split(",");
     let mime = arr[0].match(/:(.*?);/)[1];
     console.log(mime);

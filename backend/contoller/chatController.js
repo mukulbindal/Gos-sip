@@ -64,7 +64,10 @@ const fetchChats = asyncHandler(async (req, res) => {
           },
           {
             isGroupChat: true,
-            groupAdmin: req.currentUser._id,
+            $or: [
+              { latestMessage: { $exists: true } },
+              { groupAdmin: req.currentUser._id },
+            ],
           },
         ],
       })
