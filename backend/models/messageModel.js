@@ -9,6 +9,8 @@ const messageSchema = mongoose.Schema(
     content: {
       type: String,
       trim: true,
+      minLength: [1, "message without content is invalid"],
+      maxLength: [1000, "Only 1000 characters allowed."],
     },
     chat: {
       type: mongoose.Schema.Types.ObjectId,

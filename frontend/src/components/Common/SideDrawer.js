@@ -32,12 +32,26 @@ import ChatUser from "../Chat/ChatUser";
 import { debounce } from "lodash";
 import Logo from "./Logo";
 const SideDrawer = () => {
+  // Context
+  const chatState = ChatState();
+  // State
   const [search, setsearch] = useState("");
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const chatState = ChatState();
+
+  // Hooks
   const navigate = useNavigate();
+  const toast = useToast();
+  const { isOpen, onClose, onOpen } = useDisclosure();
+  // Reactions
+  useEffect(() => {
+    if (!search) {
+      setSearchResult([]);
+    }
+  }, [search]);
+  // Handlers
+
   const logoutHandler = () => {
     removeUser();
     chatState.setUser(null);
@@ -45,23 +59,22 @@ const SideDrawer = () => {
     chatState.setChats([]);
     navigate("/");
   };
-  const toast = useToast();
+
   const delayedQuery = useCallback(
     debounce((q) => handleSearch(q), 500),
     []
   );
-  useEffect(() => {
-    if (!search) {
-      setSearchResult([]);
-    }
-  }, [search]);
+
+  /** args: query is the text to search and button is flag if search button was clicked*/
   const handleSearch = async (query, button) => {
     try {
-      //console.log("query is:", query);
       if ((!query || query === search) && !button) return;
 
       setSearchResult([]);
       setLoading(true);
+
+      // To handle what happens if nothing is entered and button is pressed
+      // Or onchange of search box text
       if ((!query || !query.trim()) && (!search || !search.trim())) {
         if (button) throw new Error("Please enter something to search");
         else return;
@@ -81,7 +94,7 @@ const SideDrawer = () => {
       if (data.length === 0) {
         throw new Error("No user found!");
       }
-      //console.log(data);
+
       setLoading(false);
       setSearchResult(data);
     } catch (error) {
@@ -97,6 +110,8 @@ const SideDrawer = () => {
       setLoading(false);
     }
   };
+
+  // To create or open chat when clicked the searched user
   const chatHandler = async (userId) => {
     try {
       setLoadingChat(true);
@@ -109,6 +124,7 @@ const SideDrawer = () => {
 
       const { data } = await axios.post("/api/chat", { userId }, config);
 
+      // If this chat is not present in current chats, add it
       if (
         !chatState.chats?.find((c) => {
           return c._id === data._id;
@@ -116,7 +132,13 @@ const SideDrawer = () => {
       ) {
         chatState.setChats([data, ...chatState.chats]);
       }
+
+      // Set selected chat to current chat
       chatState.setSelectedChat(data);
+
+      // Clear the search results.
+      setsearch();
+      setSearchResult([]);
     } catch (error) {
       toast({
         status: "error",
@@ -130,7 +152,7 @@ const SideDrawer = () => {
       onClose();
     }
   };
-  const { isOpen, onClose, onOpen } = useDisclosure();
+
   return (
     <>
       <Box
@@ -156,9 +178,17 @@ const SideDrawer = () => {
         <div>
           <Menu>
             <MenuButton padding={1}>
+              {/* @todo: Notification icon */}
               <BellIcon fontSize="2xl" m={1} />
             </MenuButton>
-            <MenuList></MenuList>
+            <MenuList>
+              <Text padding={"3%"} fontSize="sm">
+                Please verify your email.
+              </Text>
+              <Text padding={"3%"} fontSize="sm">
+                You have some unread notifications
+              </Text>
+            </MenuList>
           </Menu>
 
           <Menu>
@@ -194,7 +224,6 @@ const SideDrawer = () => {
                 marginRight={2}
                 value={search}
                 onChange={(e) => {
-                  //console.log(e.key);
                   setsearch(e.target.value);
                   delayedQuery(e.target.value);
                 }}

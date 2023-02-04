@@ -4,6 +4,7 @@ const chatSchema = mongoose.Schema(
     chatName: {
       type: String,
       trim: true,
+      minLength: [2, "Chat Name must have atleast 2 characters"],
     },
     isGroupChat: {
       type: Boolean,

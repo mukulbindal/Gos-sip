@@ -15,13 +15,21 @@ import urls from "../../config/urls";
 import { useNavigate } from "react-router-dom";
 import { ChatState } from "../../context/chatProvider";
 import setCurrentUser from "../../config/setCurrentUser";
-import currentUser from "../../config/currentUser";
+
 const Login = () => {
+  // Context
   const chatState = ChatState();
+
+  // States
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [show, setShow] = useState(false);
 
+  //Hooks
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  // Handlers
   const emailHandler = (email) => {
     setEmail(email);
   };
@@ -33,25 +41,17 @@ const Login = () => {
   const flip = () => {
     setShow(!show);
   };
-  const toast = useToast();
-  const navigate = useNavigate();
 
   const submitHandler = async (e) => {
     let errorMsg = [];
     try {
-      //console.log(submitButton);
-
-      //console.log(submitButton);
-      //await timeout(5000);
-
-      if (!email) {
+      if (!email || !email.trim()) {
         errorMsg.push("Email is empty");
       }
-      if (!password) {
+      if (!password || !password.trim()) {
         errorMsg.push("password is empty");
       }
 
-      //console.log(errorMsg);
       if (errorMsg.length > 0) {
         throw new Error();
       } else {
@@ -63,15 +63,15 @@ const Login = () => {
           title: "Validated Successfully",
         });
       }
-      // start the submit logic
 
+      // Call the auth API
       const config = {
         headers: {
           "Content-type": "application/json",
         },
       };
       const { data } = await axios.post(
-        `${urls.CHAT_HOST}/api/user/auth`,
+        `/api/user/auth`,
         { email, password },
         config
       );
@@ -83,12 +83,10 @@ const Login = () => {
         position: "bottom",
         title: "Logged in Successfully",
       });
-      console.log("here");
       const user = setCurrentUser(data);
       chatState.setUser(user);
       navigate("/chats");
     } catch (e) {
-      //console.log(e);
       if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
       for (let errorM of errorMsg) {
         toast({
@@ -116,6 +114,11 @@ const Login = () => {
           onChange={(e) => {
             emailHandler(e.target.value);
           }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              document.getElementById("login-password").focus();
+            }
+          }}
         />
       </FormControl>
 
@@ -126,6 +129,11 @@ const Login = () => {
             type={show ? "text" : "password"}
             onChange={(e) => {
               passwordHandler(e.target.value);
+            }}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                submitHandler(e);
+              }
             }}
           />
           <InputRightElement>
