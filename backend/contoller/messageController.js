@@ -1,9 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const BadRequestError = require("../Exceptions/BadRequestError");
-const NotAuthorisedError = require("../Exceptions/NotAuthorisedError");
 const chatModel = require("../models/chatModel");
 const messageModel = require("../models/messageModel");
-const { findByIdAndUpdate } = require("../models/userModel");
 const userModel = require("../models/userModel");
 
 const sendMessage = asyncHandler(async (req, res) => {
@@ -19,10 +17,10 @@ const sendMessage = asyncHandler(async (req, res) => {
     });
     await message.save();
     await message.populate("chat");
+    await message.populate("chat.users", "_id name");
     await message.populate("sender", "name email");
-    //let fullMessage = await chatModel.populate(message, "chat");
-    //fullMessage = await fullMessage.populate("sender", "name email");
-    //await messa
+
+    res.json(message);
     await chatModel.findByIdAndUpdate(
       message.chat._id,
       {
@@ -30,29 +28,27 @@ const sendMessage = asyncHandler(async (req, res) => {
       },
       { new: true }
     );
-
-    //console.log(message);
-    res.json(message);
   } catch (error) {
     res.status(error.statusCode || 500);
-    throw new Error(error.message);
+    throw error;
   }
 });
-let controller;
 
 const fetchMessages = asyncHandler(async (req, res) => {
   try {
     const chatId = req.params.chatId;
-    const messages = await messageModel.find({
-      chat: chatId,
-    });
-    let fullMessages = await chatModel.populate(messages, "chat");
-    fullMessages = await userModel.populate(fullMessages, "sender");
+    const messages = await messageModel
+      .find({
+        chat: chatId,
+      })
+      .populate("chat", "isGroupChat")
+      .populate("sender", "name email")
+      .sort({ createdAt: 1 });
 
-    res.json(fullMessages);
+    return res.json(messages);
   } catch (error) {
     res.status(error.statusCode || 500);
-    throw new Error(error.message);
+    throw error;
   }
 });
 const messageController = {

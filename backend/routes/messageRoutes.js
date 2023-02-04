@@ -4,8 +4,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const messageRoutes = express.Router();
 
-// send messageRoutes, fetch message
-
 messageRoutes
   .route("/send")
   .post(authMiddleware.authorize, messageController.sendMessage);

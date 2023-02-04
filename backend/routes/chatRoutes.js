@@ -4,9 +4,6 @@ const authMiddleware = require("../middleware/authMiddleware");
 
 const chatRoutes = express.Router();
 
-//accesschat , fetchchat, createGroupchat, renamegroup
-// remove from group , add to group
-
 chatRoutes
   .route("/")
   .get(authMiddleware.authorize, chatController.fetchChats)

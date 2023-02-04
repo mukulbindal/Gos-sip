@@ -2,14 +2,14 @@ const asyncHandler = require("express-async-handler");
 const BadRequestError = require("../Exceptions/BadRequestError");
 const NotAuthorisedError = require("../Exceptions/NotAuthorisedError");
 const chatModel = require("../models/chatModel");
-const { findByIdAndUpdate } = require("../models/userModel");
 const userModel = require("../models/userModel");
 
+/* This method will return the chat between two users if exists, else creates a new one */
 const accessChat = asyncHandler(async (req, res) => {
   try {
     const userId = req.body.userId;
     if (!userId) {
-      throw new Error("User not sent with the request");
+      throw new BadRequestError("User not sent with the request");
     }
 
     let isChat = await chatModel
@@ -20,40 +20,37 @@ const accessChat = asyncHandler(async (req, res) => {
           { users: { $elemMatch: { $eq: userId } } },
         ],
       })
-      .populate("users", "-password")
+      .populate("users", "-password -pic")
       .populate("latestMessage");
 
     isChat = await userModel.populate(isChat, {
       path: "latestMessage.sender",
-      select: "name pic email",
+      select: "name email",
     });
 
     if (isChat.length > 0) {
-      res.send(isChat[0]);
+      return res.send(isChat[0]);
     } else {
       // create the new chat
-      let chatData = {
-        chatName: "sender",
+      const chatData = new chatModel({
+        chatName: "Single",
         isGroupChat: false,
         users: [req.currentUser._id, userId],
-      };
+      });
 
-      const createdChat = await chatModel.create(chatData);
-      const fullChat = await chatModel
-        .findById(createdChat._id)
-        .populate("users", "-password");
-      return res.status(200).json(fullChat);
+      await chatData.save();
+      await chatData.populate("users", "-password -pic");
+      return res.status(200).json(chatData);
     }
   } catch (error) {
     res.status(error.statusCode || 500);
-    throw new Error(error.message);
+    throw error;
   }
 });
 
 const fetchChats = asyncHandler(async (req, res) => {
   // one example without async await
   try {
-    //console.log("insode fetch");
     chatModel
       .find({
         users: { $elemMatch: { $eq: req.currentUser._id } },
@@ -71,37 +68,52 @@ const fetchChats = asyncHandler(async (req, res) => {
           },
         ],
       })
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password")
+      .populate("users", "-password -pic")
+      .populate("groupAdmin", "-password -pic")
       .populate("latestMessage")
       .sort({ updatedAt: -1 })
       .then(async (results) => {
         results = await userModel.populate(results, {
           path: "latestMessage.sender",
-          select: "name pic email",
+          select: "name email",
         });
         return res.status(200).json(results);
       });
   } catch (error) {
     res.status(error.statusCode || 500);
-    throw new Error(error.message);
+    throw error;
   }
 });
-
+// An Example on why to use microservices. It's bad practice and should be avoided.
 const createGroup = asyncHandler(async (req, res) => {
   try {
-    const { users, chatName, chatId, leaveGroup } = req.body;
-    console.log(req.body);
-    if (!users || !chatName) {
+    const {
+      users, // list of users
+      chatName, // Name of the chat
+      chatId, // Chat Id if chat already exists
+      requestType, // Type of request: C=Create M=Modify L=Leave Group
+    } = req.body;
+
+    // Request Validation
+    if (!requestType) {
+      throw new BadRequestError("Request Type is not present");
+    }
+
+    if (requestType === "C" && (!users || !chatName)) {
       throw new BadRequestError("Send all the fields");
     }
 
-    if (users.length < 2) {
+    if ((requestType === "L" || requestType === "M") && !chatId) {
+      throw new BadRequestError("Send the chat Id to be modified");
+    }
+
+    if (requestType !== "L" && users.length < 2) {
       throw new BadRequestError("Group needs more than 2 users");
     }
-    if (!chatId && !leaveGroup) users.push(req.currentUser);
+
+    if (requestType == "C") users.push(req.currentUser);
     let groupChat = null;
-    if (!chatId) {
+    if (requestType == "C") {
       groupChat = await chatModel.create({
         chatName,
         isGroupChat: true,
@@ -109,7 +121,7 @@ const createGroup = asyncHandler(async (req, res) => {
         groupAdmin: req.currentUser._id,
       });
     } else {
-      if (leaveGroup) {
+      if (requestType === "L") {
         groupChat = await chatModel.findOne({
           _id: chatId,
         });
@@ -119,29 +131,42 @@ const createGroup = asyncHandler(async (req, res) => {
           groupAdmin: req.currentUser._id,
         });
       }
-      groupChat.chatName = chatName;
-      // if removing group admin, assign new admin
-      console.log(users);
-      if (leaveGroup) {
-        groupChat.groupAdmin = users[0]?._id || null;
+      if (!groupChat) {
+        throw new BadRequestError(
+          "You are not allowed to perform this operation"
+        );
       }
-      groupChat.users = users;
-      groupChat = await groupChat.save();
-      console.log(groupChat);
+      if (requestType === "M" && chatName) {
+        groupChat.chatName = chatName;
+        groupChat.users = users;
+      }
+
+      // if removing group admin, assign new admin
+      if (requestType === "L") {
+        groupChat.users = await users.filter(
+          (user) => user._id !== req.currentUser._id
+        );
+        if (groupChat.groupAdmin._id === req.currentUser._id) {
+          groupChat.groupAdmin = groupChat.users[0]?._id || null;
+        }
+      }
+
+      await groupChat.save();
     }
 
     const fullGroup = await chatModel
       .findById(groupChat._id)
-      .populate("users", "-password")
-      .populate("groupAdmin", "-password");
+      .populate("users", "-password -pic")
+      .populate("groupAdmin", "-password -pic");
 
     return res.status(200).json(fullGroup);
   } catch (error) {
     res.status(error.statusCode || 500);
-    throw new Error(error.message);
+    throw error;
   }
 });
 
+// An Example on why to use microservices. Below are the better approaches
 const renameGroup = asyncHandler(async (req, res) => {
   try {
     const { chatId, chatName } = req.body;
@@ -263,6 +288,7 @@ const removeUserFromGroup = asyncHandler(async (req, res) => {
     throw new Error(error.message);
   }
 });
+
 const chatController = {
   accessChat,
   fetchChats,

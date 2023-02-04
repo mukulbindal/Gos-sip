@@ -1,4 +1,4 @@
-class NoTokenException extends Error {
+class NoTokenError extends Error {
   constructor(message) {
     super(message);
     if (!message) {
@@ -8,4 +8,4 @@ class NoTokenException extends Error {
   }
 }
 
-module.exports = NoTokenException;
+module.exports = NoTokenError;
