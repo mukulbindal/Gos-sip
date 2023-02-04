@@ -2,7 +2,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  Image,
   Input,
   InputGroup,
   InputRightElement,
@@ -12,10 +11,12 @@ import {
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import urls from "../../config/urls";
 import setCurrentUser from "../../config/setCurrentUser";
 import { ChatState } from "../../context/chatProvider";
+import { ValidationError } from "../../Errors/ValidationError";
+import Validations from "../../utils/Validations";
 
 const Signup = () => {
   const chatState = ChatState();
@@ -59,7 +60,7 @@ const Signup = () => {
       buttonTexts.imageUpload = "Uploading";
       buttonTexts.imageColor = "#449";
       setbuttonTexts(buttonTexts);
-      setImage(image);
+      //setImage(image);
 
       //(image)=>{
       const reader = new FileReader();
@@ -68,6 +69,9 @@ const Signup = () => {
         try {
           const result = reader.result;
           console.log(result.length);
+          if (image.size > 1024 * 1024) {
+            throw new Error("Photo size should be less than 1 MB");
+          }
           setImage(reader.result);
           console.log("Inside Image handler::", image);
           buttonTexts.imageUpload = "Uploaded";
@@ -75,9 +79,17 @@ const Signup = () => {
           setbuttonTexts(buttonTexts);
           setLoadImage(false);
         } catch (error) {
-          console.lof(error);
+          console.log(error);
           buttonTexts.imageUpload = "Failed";
           buttonTexts.imageColor = "#944";
+          setImage("");
+          toast({
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+            position: "bottom",
+            title: error.message,
+          });
           setbuttonTexts(buttonTexts);
           setLoadImage(false);
         }
@@ -87,6 +99,7 @@ const Signup = () => {
         buttonTexts.imageColor = "#944";
         setbuttonTexts(buttonTexts);
         setLoadImage(false);
+        setImage("");
       };
       //}
 
@@ -96,6 +109,7 @@ const Signup = () => {
       buttonTexts.imageColor = "#944";
       setbuttonTexts(buttonTexts);
       setLoadImage(false);
+      setImage("");
     }
   };
   const flip = () => {
@@ -111,7 +125,6 @@ const Signup = () => {
     setsubmitButton(submitButton);
   };
   const submitHandler = async (e) => {
-    let errorMsg = [];
     try {
       //console.log(submitButton);
 
@@ -121,35 +134,21 @@ const Signup = () => {
       });
       //console.log(submitButton);
       //await timeout(5000);
+      Validations.validateSignUp({
+        name,
+        email,
+        password,
+        confirmPassword,
+        image,
+      });
 
-      if (!name) {
-        errorMsg.push("Name is empty");
-      }
-      if (!email) {
-        errorMsg.push("Email is empty");
-      }
-      if (!password) {
-        errorMsg.push("password is empty");
-      }
-      if (!confirmPassword) {
-        errorMsg.push("confirm Password is empty");
-      }
-      if (password !== confirmPassword) {
-        errorMsg.push("Passwords do not match!!");
-      }
-      //console.log(errorMsg);
-      if (errorMsg.length > 0) {
-        throw new Error();
-      } else {
-        toast({
-          status: "success",
-          duration: 3000,
-          isClosable: true,
-          position: "bottom",
-          title: "Validated Successfully",
-        });
-      }
-      // start the submit logic
+      toast({
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+        position: "bottom",
+        title: "Validated Successfully",
+      });
 
       const config = {
         headers: {
@@ -174,8 +173,13 @@ const Signup = () => {
       chatState.setUser(user);
       navigate("/chats");
     } catch (e) {
-      //console.log(e);
-      if (e.name === "AxiosError") errorMsg.push(e?.response?.data?.message);
+      const errorMsg = [];
+      if (e instanceof AxiosError) errorMsg.push(e.response.data.message);
+      errorMsg.push(e.message);
+      if (e instanceof ValidationError) {
+        e.errors.forEach((msg) => errorMsg.push(msg));
+      }
+
       for (let errorM of errorMsg) {
         toast({
           status: "error",

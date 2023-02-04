@@ -23,8 +23,8 @@ const HomePage = () => {
     if (chatState.user) {
       navigate("/chats");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [navigate]);
+  }, [chatState.user]);
+
   return (
     <Container maxW="xl" centerContent>
       <Box
