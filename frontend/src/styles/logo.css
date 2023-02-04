@@ -1,0 +1,10 @@
+.logo{
+    color:rgb(35, 0, 43);
+    text-shadow: 3px 3px 3px rgb(138, 117, 136);
+}
+
+.cover {
+    font-size: 2em;
+    font-weight: bolder;
+    color: rgb(37, 0, 27);
+}

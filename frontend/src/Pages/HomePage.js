@@ -14,6 +14,7 @@ import Signup from "../components/Authentication/Signup";
 import { useNavigate } from "react-router-dom";
 import currentUser from "../config/currentUser";
 import { ChatState } from "../context/chatProvider";
+import Logo from "../components/Common/Logo";
 
 const HomePage = () => {
   const chatState = ChatState();
@@ -36,9 +37,7 @@ const HomePage = () => {
         borderWidth="1px"
         backgroundColor="white"
       >
-        <Text fontSize="3xl" color="black" fontWeight="600">
-          BalloonChat
-        </Text>
+        <Logo />
       </Box>
       <Box
         marginTop="10px"

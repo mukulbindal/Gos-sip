@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const asyncHandler = require("express-async-handler");
 const userModel = require("../models/userModel");
-const NoTokenException = require("../Exceptions/NoTokenException");
+const NoTokenError = require("../Exceptions/NoTokenError");
 
 const authorize = asyncHandler(async (req, res, next) => {
   let token;
@@ -18,15 +18,10 @@ const authorize = asyncHandler(async (req, res, next) => {
 
       return next();
     }
-    throw new NoTokenException();
+    throw new NoTokenError();
   } catch (error) {
-    if (error instanceof NoTokenException) {
-      res.status(error.statusCode);
-      throw error;
-    } else {
-      res.status(401);
-      throw new Error("Not Authorized, token failed");
-    }
+    res.status(error.statusCode || 401);
+    throw error;
   }
 });
 

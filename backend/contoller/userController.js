@@ -1,74 +1,85 @@
 const asyncHandler = require("express-async-handler");
 const generateToken = require("../config/generateToken");
+const BadRequestError = require("../Exceptions/BadRequestError");
+const InternalServerError = require("../Exceptions/InternalServerError");
+const NotFoundError = require("../Exceptions/NotFoundError");
 const userModel = require("../models/userModel");
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, pic } = req.body;
+  try {
+    const { name, email, password, pic } = req.body;
 
-  if (!name || !email || !password) {
-    res.status(400);
-    throw new Error("Please enter all the fields!");
-  }
+    if (!name || !email || !password) {
+      res.status(400);
+      throw new BadRequestError("Please enter all the fields!");
+    }
 
-  const userExists = await userModel.findOne({ email });
+    const userExists = await userModel.findOne({ email });
 
-  if (userExists) {
-    res.status(400);
-    throw new Error("User already exists!!");
-  }
+    if (userExists) {
+      res.status(400);
+      throw new BadRequestError("User already exists");
+    }
 
-  const user = await userModel.create({
-    name,
-    email,
-    password,
-    pic,
-  });
-
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      pic: user.pic,
-      token: generateToken(user._id),
+    const user = await userModel.create({
+      name,
+      email,
+      password,
+      pic,
     });
-  } else {
-    res.status(500);
-    throw new Error("Failed to create the user");
+
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+      });
+    } else {
+      throw new InternalServerError("Failed to create the user");
+    }
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
   }
 });
 
 const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  if (!email || !password) {
-    res.status(400);
-    throw new Error("Please enter all the fields!");
-  }
+    if (!email || !password) {
+      throw new BadRequestError("Please enter all the fields!");
+    }
 
-  const user = await userModel.findOne({ email });
+    const user = await userModel.findOne({ email });
 
-  if (user && (await user.verifyPassword(password))) {
-    res.status(200).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      pic: user.pic,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(400);
-    throw new Error("Invalid username or password!!");
+    if (user && (await user.verifyPassword(password))) {
+      res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+      });
+    } else {
+      throw new BadRequestError("Invalid username or password!!");
+    }
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
   }
 });
 
-// will accept the keyword as query param
 const searchUser = asyncHandler(async (req, res) => {
-  const keyword = req.query.search;
-  let limit = req.query.limit;
   try {
-    if (keyword) {
-      let user = await userModel.find(
+    const keyword = req.query.search;
+    // limit is optional.
+    const limit = req.query.limit ? parseInt(req.query.limit) : null;
+    if (!keyword) {
+      throw new BadRequestError("Missing parameters");
+    }
+    let user = await userModel
+      .find(
         {
           $or: [
             { name: { $regex: keyword, $options: "i" } },
@@ -80,21 +91,40 @@ const searchUser = asyncHandler(async (req, res) => {
         {
           name: 1,
           email: 1,
-          pic: 1,
         }
-      );
-      if (limit) {
-        limit = parseInt(limit);
-        user = user.slice(0, Math.min(limit, user.length));
-      }
-      return res.status(200).json(user);
-    } else {
-      throw new Error("Missing parameters");
-    }
-  } catch (e) {
-    res.status(500);
-    throw new Error(e.message);
+      )
+      .limit(limit);
+    return res.status(200).json(user);
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
   }
 });
-const userController = { registerUser, authUser, searchUser };
+
+const getImage = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    if (!userId) {
+      throw new BadRequestError("Please send user Id");
+    }
+
+    const image = await userModel.findById(userId, { pic: 1, _id: 0 });
+    let dataurl = image.pic;
+    if (!dataurl) throw new NotFoundError("No Image Found");
+    let arr = dataurl.split(",");
+    let mime = arr[0].match(/:(.*?);/)[1];
+    console.log(mime);
+    let img = Buffer.from(arr[1], "base64");
+    res.writeHead(200, {
+      "Content-Type": mime,
+      "Content-Length": img.length,
+    });
+    res.end(img);
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
+  }
+});
+
+const userController = { registerUser, authUser, searchUser, getImage };
 module.exports = userController;
