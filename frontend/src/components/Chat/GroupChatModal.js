@@ -92,7 +92,7 @@ const GroupChatModal = ({ children, mode, isAdmin, disabledMode }) => {
         users: selectedUsers.filter((u) => u._id !== chatState.user._id),
         chatName: groupChatName || chatState.selectedChat.chatName,
         chatId: mode === "edit" ? chatState.selectedChat._id : null,
-        leaveGroup: true,
+        requestType: "L",
       };
 
       const { data } = await axios.post(
@@ -152,6 +152,7 @@ const GroupChatModal = ({ children, mode, isAdmin, disabledMode }) => {
         users: selectedUsers,
         chatName: groupChatName || chatState.selectedChat.chatName,
         chatId: mode === "edit" ? chatState.selectedChat._id : null,
+        requestType: mode === "edit" ? "M" : "C",
       };
 
       const { data } = await axios.post(

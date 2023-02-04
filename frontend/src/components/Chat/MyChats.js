@@ -120,7 +120,9 @@ const MyChats = () => {
                   src={
                     chat.isGroupChat
                       ? ""
-                      : utils.sender(chatState.user, chat.users)?.pic
+                      : `/api/user/image/${
+                          utils.sender(chatState.user, chat.users)?._id
+                        }`
                   }
                 ></Avatar>
                 <Box display={"flex"} flexDirection="column">

@@ -46,7 +46,10 @@ const ChatBoxHeader = () => {
           src={
             chatState.selectedChat.isGroupChat
               ? ""
-              : utils.sender(chatState.user, chatState.selectedChat.users)?.pic
+              : `/api/user/image/${
+                  utils.sender(chatState.user, chatState.selectedChat.users)
+                    ?._id
+                }`
           }
           border="1px solid #7a7"
         />

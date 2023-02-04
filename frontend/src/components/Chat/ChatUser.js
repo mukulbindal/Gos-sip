@@ -27,7 +27,7 @@ const ChatUser = ({ user, handler }) => {
         size="sm"
         cursor={"pointer"}
         name={user.name}
-        src={user.pic}
+        src={`/api/user/image/${user._id}`}
       ></Avatar>
       <Box>
         <Text>{user.name}</Text>
