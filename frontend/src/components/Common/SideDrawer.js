@@ -167,7 +167,7 @@ const SideDrawer = () => {
                 size="sm"
                 cursor="pointer"
                 name={chatState.user.name}
-                src={chatState.user.pic}
+                src={`/api/user/image/${chatState.user._id}`}
               />
             </MenuButton>
             <MenuList margin={2}>
