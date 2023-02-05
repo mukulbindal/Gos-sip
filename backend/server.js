@@ -24,19 +24,10 @@ app.use("/api/message", messageRoutes);
 
 /********** Integration  Starts  *************/
 const __dirname1 = path.resolve();
+app.get("/", (req, res) => {
+  res.send("API is running..");
+});
 
-if (process.env.NODE_ENV === "production") {
-  app.use(express.static(path.join(__dirname1, "/frontend/build")));
-
-  app.get("*", (req, res) =>
-    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
-  );
-} else {
-  // empty route to ensure app is working
-  app.get("/", (req, res) => {
-    res.send("API is running..");
-  });
-}
 /********** Integration  Ends  *************/
 
 // If no match found, use notFound handler to handle error
@@ -52,10 +43,7 @@ app.use(errorHandlers.errorHandler);
 const PORT = process.env.PORT || 8080;
 
 // For SSL setup
-const options = {
-  key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
-  cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
-};
+
 // Start the express App
 var httpsServer = null;
 httpsServer = app.listen(
