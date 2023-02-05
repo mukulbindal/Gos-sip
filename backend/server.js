@@ -57,8 +57,8 @@ const options = {
   cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
 };
 // Start the express App
-var httpsServer;
-if (process.env.NODE_ENV !== "production") {
+var httpsServer = null;
+if (httpsServer) {
   httpsServer = https
     .createServer(options, app)
     .listen(
