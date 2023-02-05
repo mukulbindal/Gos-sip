@@ -63,7 +63,7 @@ const options = {
 };
 // Start the express App
 var httpsServer;
-if (process.env.NODE_ENV === "production") {
+if (process.env.NODE_ENV !== "production") {
   httpsServer = https
     .createServer(options, app)
     .listen(
