@@ -1,5 +1,10 @@
 const express = require("express");
-require("dotenv").config();
+require("dotenv").config({
+  path:
+    process.env.NODE_ENV === "production"
+      ? "/etc/secrets/prod.env"
+      : "./dev.env",
+});
 const connectDB = require("./config/db");
 const userRouter = require("./routes/userRoutes");
 const errorHandlers = require("./middleware/errorHandlers");
@@ -24,10 +29,19 @@ app.use("/api/message", messageRoutes);
 
 /********** Integration  Starts  *************/
 const __dirname1 = path.resolve();
-app.get("/", (req, res) => {
-  res.send("API is running..");
-});
 
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname1, "/frontend/build")));
+
+  app.get("*", (req, res) =>
+    res.sendFile(path.resolve(__dirname1, "frontend", "build", "index.html"))
+  );
+} else {
+  // empty route to ensure app is working
+  app.get("/", (req, res) => {
+    res.send("API is running..");
+  });
+}
 /********** Integration  Ends  *************/
 
 // If no match found, use notFound handler to handle error
@@ -43,23 +57,31 @@ app.use(errorHandlers.errorHandler);
 const PORT = process.env.PORT || 8080;
 
 // For SSL setup
-
+const options = {
+  key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
+  cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
+};
 // Start the express App
-var httpsServer = null;
-httpsServer = app.listen(
-  PORT,
-  console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
-);
-// if (httpsServer) {
-//   httpsServer = https
-//     .createServer(options, app)
-//     .listen(
-//       PORT,
-//       console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
-//     );
-// } else {
-
-// }
+var httpsServer;
+if (process.env.NODE_ENV === "production") {
+  httpsServer = https
+    .createServer(options, app)
+    .listen(
+      PORT,
+      console.log(
+        `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+          .yellow.underline.bold
+      )
+    );
+} else {
+  httpsServer = app.listen(
+    PORT,
+    console.log(
+      `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+        .yellow.underline.bold
+    )
+  );
+}
 
 const io = socketIO(httpsServer, {
   pingTimeout: 60000,
