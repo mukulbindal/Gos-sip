@@ -12,7 +12,7 @@ echo "========Server Setup Completed===========";
 echo "========Starting SSL Setup if keys not present==========";
 #cd ./backend;
 SSL_PATH=$APP_DIR/backend/bin;
-if [ ! -f $SSL_PATH/server.key1 ]; then
+if [ ! -f $SSL_PATH/server.key ]; then
     #create new SSL
     echo "Creating new SSL" 
     rm -rf $SSL_PATH;
