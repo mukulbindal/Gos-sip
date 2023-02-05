@@ -6,6 +6,7 @@ import {
   InputGroup,
   InputRightElement,
   StackDivider,
+  Tooltip,
   useToast,
   VStack,
 } from "@chakra-ui/react";
@@ -17,9 +18,13 @@ import setCurrentUser from "../../config/setCurrentUser";
 import { ChatState } from "../../context/chatProvider";
 import { ValidationError } from "../../Errors/ValidationError";
 import Validations from "../../utils/Validations";
+import { set } from "lodash";
 
 const Signup = () => {
+  // Contexts
   const chatState = ChatState();
+
+  // States
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
@@ -37,8 +42,12 @@ const Signup = () => {
     imageUpload: "",
     imageColor: "",
   });
+
+  // Hooks
   const toast = useToast();
   const navigate = useNavigate();
+
+  // Handler Functions
   const nameHandler = (name) => {
     setName(name);
   };
@@ -54,26 +63,31 @@ const Signup = () => {
     setConfirmPassword(password);
   };
 
+  const reset = () => {
+    setName();
+    setEmail();
+    setImage();
+    setPassword();
+    setConfirmPassword();
+  };
+  /* arg: image is a File object*/
   const imageHandler = async (image) => {
     setLoadImage(true);
     try {
       buttonTexts.imageUpload = "Uploading";
       buttonTexts.imageColor = "#449";
       setbuttonTexts(buttonTexts);
-      //setImage(image);
 
-      //(image)=>{
       const reader = new FileReader();
       reader.readAsDataURL(image);
+      // When image loads into base64, executes onload function
       reader.onload = () => {
         try {
-          const result = reader.result;
-          console.log(result.length);
+          // Do not allow large image files, it can cause performance issues later
           if (image.size > 1024 * 1024) {
             throw new Error("Photo size should be less than 1 MB");
           }
           setImage(reader.result);
-          console.log("Inside Image handler::", image);
           buttonTexts.imageUpload = "Uploaded";
           buttonTexts.imageColor = "#494";
           setbuttonTexts(buttonTexts);
@@ -94,6 +108,8 @@ const Signup = () => {
           setLoadImage(false);
         }
       };
+
+      // If any error during base64 conversion, fires onerror
       reader.onerror = () => {
         buttonTexts.imageUpload = "Failed";
         buttonTexts.imageColor = "#944";
@@ -101,9 +117,6 @@ const Signup = () => {
         setLoadImage(false);
         setImage("");
       };
-      //}
-
-      //if (image) throw new Error();
     } catch (e) {
       buttonTexts.imageUpload = "Failed";
       buttonTexts.imageColor = "#944";
@@ -115,25 +128,24 @@ const Signup = () => {
   const flip = () => {
     setShow(!show);
   };
+
+  // A simple but weird function to update the states of submit button
+  // Better way is using the expandor (...Object)
   const updateSubmit = (newState) => {
-    //console.log(newState, submitButton);
     for (let key in submitButton) {
       submitButton[key] =
         newState[key] === undefined ? submitButton[key] : newState[key];
     }
-    //console.log(newState, submitButton);
     setsubmitButton(submitButton);
   };
   const submitHandler = async (e) => {
     try {
-      //console.log(submitButton);
-
       updateSubmit({
         isLoading: true,
         loadingText: "Validating...",
       });
-      //console.log(submitButton);
-      //await timeout(5000);
+
+      // Validate the inputs. If invalid, it throws error
       Validations.validateSignUp({
         name,
         email,
@@ -155,6 +167,7 @@ const Signup = () => {
           "Content-type": "application/json",
         },
       };
+
       const { data } = await axios.post(
         `${urls.CHAT_HOST}/api/user/register`,
         { name, email, password, pic: image },
@@ -168,9 +181,12 @@ const Signup = () => {
         position: "bottom",
         title: "Registered Successfully",
       });
-
+      // @todo - can create a useEffect and change the localStorage
+      // whenever our chatState.user changes.
       const user = setCurrentUser(data);
       chatState.setUser(user);
+      // reset the form
+      reset();
       navigate("/chats");
     } catch (e) {
       const errorMsg = [];
@@ -180,13 +196,13 @@ const Signup = () => {
         e.errors.forEach((msg) => errorMsg.push(msg));
       }
 
-      for (let errorM of errorMsg) {
+      for (let i in errorMsg) {
         toast({
           status: "error",
-          duration: 3000,
+          duration: 3000 + i * 1000,
           isClosable: true,
           position: "bottom",
-          title: errorM,
+          title: errorMsg[i],
         });
       }
     } finally {
@@ -209,6 +225,11 @@ const Signup = () => {
           onChange={(e) => {
             nameHandler(e.target.value);
           }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              document.getElementById("email").focus();
+            }
+          }}
         />
       </FormControl>
 
@@ -219,20 +240,36 @@ const Signup = () => {
           onChange={(e) => {
             emailHandler(e.target.value);
           }}
+          onKeyUp={(e) => {
+            if (e.key === "Enter") {
+              document.getElementById("password").focus();
+            }
+          }}
         />
       </FormControl>
 
       <FormControl id="password" isRequired>
         <FormLabel>Password</FormLabel>
-        <InputGroup>
-          <Input
-            type="password"
-            onChange={(e) => {
-              passwordHandler(e.target.value);
-            }}
-          />
-          <InputRightElement></InputRightElement>
-        </InputGroup>
+        <Tooltip
+          label="Password Must be: 6 characters long, Must have atleast 1 digit, 1 lowercase, 1 uppercase and 1 special character"
+          hasArrow
+          placement="auto"
+        >
+          <InputGroup>
+            <Input
+              type="password"
+              onChange={(e) => {
+                passwordHandler(e.target.value);
+              }}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  document.getElementById("confirm-password").focus();
+                }
+              }}
+            />
+            <InputRightElement></InputRightElement>
+          </InputGroup>
+        </Tooltip>
       </FormControl>
 
       <FormControl id="confirm-password" isRequired>
@@ -242,6 +279,11 @@ const Signup = () => {
             type={show ? "text" : "password"}
             onChange={(e) => {
               confirmPasswordHandler(e.target.value);
+            }}
+            onKeyUp={(e) => {
+              if (e.key === "Enter") {
+                document.getElementById("photo").focus();
+              }
             }}
           />
           <InputRightElement>

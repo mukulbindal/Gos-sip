@@ -9,6 +9,9 @@ const socketIO = require("socket.io");
 const path = require("path");
 const colors = require("colors");
 const ChatLogic = require("./logic/ChatLogic");
+const fs = require("fs");
+const https = require("https");
+
 connectDB();
 const app = express();
 app.use(express.json({ limit: "2mb" })); // to accept json data
@@ -22,7 +25,7 @@ app.use("/api/message", messageRoutes);
 /********** Integration  Starts  *************/
 const __dirname1 = path.resolve();
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname1, "/frontend/build")));
 
   app.get("*", (req, res) =>
@@ -48,13 +51,28 @@ app.use(errorHandlers.errorHandler);
 // Choose port, default is 8080
 const PORT = process.env.PORT || 8080;
 
+// For SSL setup
+const options = {
+  key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
+  cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
+};
 // Start the express App
-const server = app.listen(
-  PORT,
-  console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
-);
+var httpsServer;
+if (process.env.NODE_ENV !== "production") {
+  httpsServer = https
+    .createServer(options, app)
+    .listen(
+      PORT,
+      console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
+    );
+} else {
+  httpsServer = app.listen(
+    PORT,
+    console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
+  );
+}
 
-const io = socketIO(server, {
+const io = socketIO(httpsServer, {
   pingTimeout: 60000,
   cors: {
     origin: "http://localhost:3000",

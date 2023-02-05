@@ -1,16 +1,24 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 const encrypt = require("../config/encrypt");
 
 const userSchema = mongoose.Schema(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, "name is required"],
+      trim: true,
+      minLength: [3, "name must have atleast 3 characters"],
+      maxLength: [100, "name can have max 100 characters"],
     },
     email: {
       type: String,
       required: true,
-      unique: true,
+      unique: [true, "Email already exists"],
+      validate: {
+        validator: validator.isEmail,
+        message: "{VALUE} is not a valid Email",
+      },
     },
     password: {
       type: String,
@@ -18,7 +26,6 @@ const userSchema = mongoose.Schema(
     },
     pic: {
       type: String,
-      required: false,
       default: "",
     },
   },

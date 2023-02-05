@@ -1,12 +1,15 @@
 @import url("https://fonts.googleapis.com/css2?family=Ubuntu:wght@400&display=swap");
 
 .App {
+    
     min-height: 100vh;
     display: flex;
-    background-image: url('../public/assets/images/bg.gif');
-    background-position: center;
-    background-size: cover;
     font-family: 'Ubuntu', Helvetica, sans-serif;
+    background-image: url('../public/assets/images/4847051.jpg');
+        background-repeat: repeat;
+        background-size: "cover";
+        scroll-behavior: unset;
+        overflow-y: hidden;
     
 }
 
