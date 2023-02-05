@@ -58,19 +58,20 @@ const options = {
 };
 // Start the express App
 var httpsServer = null;
-if (httpsServer) {
-  httpsServer = https
-    .createServer(options, app)
-    .listen(
-      PORT,
-      console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
-    );
-} else {
-  httpsServer = app.listen(
-    PORT,
-    console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
-  );
-}
+httpsServer = app.listen(
+  PORT,
+  console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
+);
+// if (httpsServer) {
+//   httpsServer = https
+//     .createServer(options, app)
+//     .listen(
+//       PORT,
+//       console.log(`Server started on PORT ${PORT}`.yellow.underline.bold)
+//     );
+// } else {
+
+// }
 
 const io = socketIO(httpsServer, {
   pingTimeout: 60000,
