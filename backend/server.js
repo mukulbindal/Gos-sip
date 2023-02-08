@@ -63,25 +63,23 @@ const options = {
 };
 // Start the express App
 var httpsServer;
-if (process.env.NODE_ENV !== "production") {
-  httpsServer = https
-    .createServer(options, app)
-    .listen(
-      PORT,
-      console.log(
-        `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
-          .yellow.underline.bold
-      )
-    );
-} else {
-  httpsServer = app.listen(
-    PORT,
-    console.log(
-      `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
-        .yellow.underline.bold
-    )
-  );
-}
+
+// httpsServer = https
+//   .createServer(options, app)
+//   .listen(
+//     PORT,
+//     console.log(
+//       `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+//         .yellow.underline.bold
+//     )
+//   );
+httpsServer = app.listen(
+  PORT,
+  console.log(
+    `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+      .yellow.underline.bold
+  )
+);
 
 const io = socketIO(httpsServer, {
   pingTimeout: 60000,

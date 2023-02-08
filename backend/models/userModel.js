@@ -22,11 +22,21 @@ const userSchema = mongoose.Schema(
     },
     password: {
       type: String,
-      required: true,
+      validate: {
+        validator: function () {
+          if (this.verified) return true;
+          if (!this.password) return false;
+        },
+        message: "Password is required",
+      },
     },
     pic: {
       type: String,
       default: "",
+    },
+    verified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
