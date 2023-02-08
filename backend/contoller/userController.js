@@ -4,7 +4,7 @@ const BadRequestError = require("../Exceptions/BadRequestError");
 const InternalServerError = require("../Exceptions/InternalServerError");
 const NotFoundError = require("../Exceptions/NotFoundError");
 const userModel = require("../models/userModel");
-
+const axios = require("axios");
 const registerUser = asyncHandler(async (req, res) => {
   try {
     const { name, email, password, pic } = req.body;
@@ -125,6 +125,58 @@ const getImage = asyncHandler(async (req, res) => {
     throw error;
   }
 });
+const googleSignIn = asyncHandler(async (req, res) => {
+  try {
+    const { name, email, pic, verified } = req.body;
+    console.log(req.body);
+    if (!name || !email) {
+      res.status(400);
+      throw new BadRequestError("Please enter all the fields!");
+    }
 
-const userController = { registerUser, authUser, searchUser, getImage };
+    let user = await userModel.findOne({ email });
+
+    if (!user) {
+      let returnedB64 = "";
+      if (pic) {
+        let image = await axios.get(pic, {
+          responseType: "arraybuffer",
+        });
+        returnedB64 = `data:${
+          image.headers["content-type"]
+        };base64,${Buffer.from(image.data).toString("base64")}`;
+      }
+
+      user = await userModel.create({
+        name,
+        email,
+        verified,
+        pic: returnedB64,
+        password: (Math.random() + 1).toString(36),
+      });
+    }
+
+    if (user) {
+      res.status(201).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+      });
+    } else {
+      throw new InternalServerError("Failed to create the user");
+    }
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
+  }
+});
+
+const userController = {
+  registerUser,
+  authUser,
+  searchUser,
+  getImage,
+  googleSignIn,
+};
 module.exports = userController;

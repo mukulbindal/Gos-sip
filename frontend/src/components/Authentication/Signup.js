@@ -1,4 +1,5 @@
 import {
+  Box,
   Button,
   FormControl,
   FormLabel,
@@ -6,6 +7,7 @@ import {
   InputGroup,
   InputRightElement,
   StackDivider,
+  Text,
   Tooltip,
   useToast,
   VStack,
@@ -19,6 +21,7 @@ import { ChatState } from "../../context/chatProvider";
 import { ValidationError } from "../../Errors/ValidationError";
 import Validations from "../../utils/Validations";
 import { set } from "lodash";
+import GoogleAuth from "./GoogleAuth";
 
 const Signup = () => {
   // Contexts
@@ -169,7 +172,7 @@ const Signup = () => {
       };
 
       const { data } = await axios.post(
-        `${urls.CHAT_HOST}/api/user/register`,
+        `/api/user/register`,
         { name, email, password, pic: image },
         config
       );
@@ -218,6 +221,7 @@ const Signup = () => {
       spacing={2}
       align="stretch"
     >
+      <GoogleAuth id="signUpBox" label="signup_with" />
       <FormControl id="user-name" isRequired>
         <FormLabel>Name</FormLabel>
         <Input

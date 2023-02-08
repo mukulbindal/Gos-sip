@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import {
+  Box,
   Button,
   FormControl,
   FormLabel,
@@ -7,6 +8,7 @@ import {
   InputGroup,
   InputRightElement,
   StackDivider,
+  Text,
   useToast,
   VStack,
 } from "@chakra-ui/react";
@@ -15,6 +17,7 @@ import urls from "../../config/urls";
 import { useNavigate } from "react-router-dom";
 import { ChatState } from "../../context/chatProvider";
 import setCurrentUser from "../../config/setCurrentUser";
+import GoogleAuth from "./GoogleAuth";
 
 const Login = () => {
   // Context
@@ -107,6 +110,7 @@ const Login = () => {
       spacing={3}
       align="stretch"
     >
+      <GoogleAuth id="signInBox" label="signin_with" />
       <FormControl id="login-email" isRequired>
         <FormLabel>Enter your Email / Username</FormLabel>
         <Input

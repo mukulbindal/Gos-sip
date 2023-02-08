@@ -5,8 +5,8 @@ import { ChatState } from "../../context/chatProvider";
 import ChatBoxBody from "./ChatBoxBody";
 import ChatBoxHeader from "./ChatBoxHeader";
 import io from "socket.io-client";
-const SOCKET_ENDPOINT = "http://localhost:4700";
-const socket = io(SOCKET_ENDPOINT);
+
+let socket;
 const ChatBox = () => {
   const chatState = ChatState();
   const [isUserConnected, setisUserConnected] = useState(false);
@@ -33,6 +33,7 @@ const ChatBox = () => {
   };
 
   useEffect(() => {
+    socket = io();
     socket.emit("init-conn", chatState.user);
     socket.on("connect", () => {
       console.log("connected");
