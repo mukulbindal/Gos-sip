@@ -22,7 +22,7 @@ if [ ! -f $SSL_PATH/server.key ]; then
     openssl genrsa -out server.key 2048;
     echo "Generating CSR";
     echo "We are on hostname=${hostname}";
-    openssl req -new -key server.key -out server.csr -subj "//A=B/C=IN/ST=UP/L=Kanpur/O=SeaGreen/OU=Owlbox/CN=owlbox.onrender.com/emailAddress=the.owl.box.project@outlook.com/";
+    openssl req -new -key server.key -out server.csr -subj "/C=IN/ST=UP/L=Kanpur/O=SeaGreen/OU=Owlbox/CN=owlbox.onrender.com/emailAddress=the.owl.box.project@outlook.com/";
     echo "Removing Passphrase";
     cp server.key server.key.org;
     openssl rsa -in server.key.org -out server.key;
