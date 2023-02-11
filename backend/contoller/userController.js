@@ -4,7 +4,9 @@ const BadRequestError = require("../Exceptions/BadRequestError");
 const InternalServerError = require("../Exceptions/InternalServerError");
 const NotFoundError = require("../Exceptions/NotFoundError");
 const userModel = require("../models/userModel");
+const jwt = require("jsonwebtoken");
 const axios = require("axios");
+const verifyGoogleToken = require("../config/verifyGoogleToken");
 const registerUser = asyncHandler(async (req, res) => {
   try {
     const { name, email, password, pic } = req.body;
@@ -127,8 +129,13 @@ const getImage = asyncHandler(async (req, res) => {
 });
 const googleSignIn = asyncHandler(async (req, res) => {
   try {
-    const { name, email, pic, verified } = req.body;
-    console.log(req.body);
+    const { googleToken } = req.body;
+
+    //verify the integrity of the token
+    const { name, email, picture, email_verified } = await verifyGoogleToken(
+      googleToken
+    );
+
     if (!name || !email) {
       res.status(400);
       throw new BadRequestError("Please enter all the fields!");
@@ -138,8 +145,8 @@ const googleSignIn = asyncHandler(async (req, res) => {
 
     if (!user) {
       let returnedB64 = "";
-      if (pic) {
-        let image = await axios.get(pic, {
+      if (picture) {
+        let image = await axios.get(picture, {
           responseType: "arraybuffer",
         });
         returnedB64 = `data:${
@@ -150,7 +157,7 @@ const googleSignIn = asyncHandler(async (req, res) => {
       user = await userModel.create({
         name,
         email,
-        verified,
+        verified: email_verified,
         pic: returnedB64,
         password: (Math.random() + 1).toString(36),
       });
