@@ -11,6 +11,7 @@ import { debounce } from "lodash";
 import React, { useCallback, useEffect, useState } from "react";
 import { ChatState } from "../../context/chatProvider";
 import Messages from "./Messages";
+const audio = new Audio("/assets/sounds/ding.mp3");
 
 const ChatBoxBody = ({ sendLiveMessage, updateTheChatList, socket }) => {
   const chatState = ChatState();
@@ -28,6 +29,9 @@ const ChatBoxBody = ({ sendLiveMessage, updateTheChatList, socket }) => {
       setMessageList([...messageList, messageData]);
     }
     updateTheChatList(messageData);
+    console.log("playing audio...");
+    audio.play();
+    console.log("played audio audio...");
   });
   //}, [socket]);
 
