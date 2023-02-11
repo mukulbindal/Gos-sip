@@ -57,10 +57,10 @@ app.use(errorHandlers.errorHandler);
 const PORT = process.env.PORT || 8080;
 
 // For SSL setup
-const options = {
-  key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
-  cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
-};
+// const options = {
+//   key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
+//   cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
+// };
 // Start the express App
 var httpsServer;
 

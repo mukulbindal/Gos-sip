@@ -20,13 +20,8 @@ const GoogleAuth = ({ id, label, handler }) => {
     try {
       setloggingIn(true);
       let token = response.credential;
-      let userObject = jwt_decode(token);
-
       const userData = {
-        name: userObject.name,
-        email: userObject.email,
-        verified: userObject.email_verified,
-        pic: userObject.picture,
+        googleToken: token,
       };
 
       const config = {
@@ -64,7 +59,7 @@ const GoogleAuth = ({ id, label, handler }) => {
       setloggingIn(false);
     }
   };
-  const loadGoogleButton = async () => {};
+
   useEffect(() => {
     /**Global Google Account signInBox*/
 
