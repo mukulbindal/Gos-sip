@@ -19,7 +19,7 @@ const Logo = ({ imageSize, myFontSize, myTransform }) => {
       <Text
         className="logo"
         fontSize={myFontSize || "3xl"}
-        fontFamily="Broadway, Ubuntu"
+        fontFamily="Fascinate,Broadway,Ubuntu"
         marginLeft={"50px"}
         fontWeight="extrabold"
       >
