@@ -50,31 +50,31 @@ app.use(errorHandlers.errorHandler);
 const PORT = process.env.PORT || 8080;
 
 //For SSL setup
-const options = {
-  key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
-  cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
-};
+// const options = {
+//   key: fs.readFileSync(__dirname + "/bin/server.key", "utf8"),
+//   cert: fs.readFileSync(__dirname + "/bin/server.crt", "utf8"),
+// };
 //Start the express App
 var httpsServer;
-if (process.env.NODE_ENV === "production") {
-  httpsServer = https
-    .createServer(options, app)
-    .listen(
-      PORT,
-      console.log(
-        `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
-          .yellow.underline.bold
-      )
-    );
-} else {
-  httpsServer = app.listen(
-    PORT,
-    console.log(
-      `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
-        .yellow.underline.bold
-    )
-  );
-}
+// if (process.env.NODE_ENV === "production") {
+//   httpsServer = https
+//     .createServer(options, app)
+//     .listen(
+//       PORT,
+//       console.log(
+//         `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+//           .yellow.underline.bold
+//       )
+//     );
+// } else {
+httpsServer = app.listen(
+  PORT,
+  console.log(
+    `Server started on PORT ${PORT} in ${process.env.NODE_ENV} environment`
+      .yellow.underline.bold
+  )
+);
+//}
 
 const io = socketIO(httpsServer, {
   pingTimeout: 60000,
