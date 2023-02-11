@@ -40,6 +40,6 @@ echo "========Finished Building  =============================";
 export NODE_ENV=production
 # Start the App
 # Not required in Render
-# node backend/server.js
+node backend/server.js
 echo "====Done=================================================";
 
