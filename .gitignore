@@ -27,3 +27,5 @@ yarn-error.log*
 **/bin/
 secrets
 prod.env
+package-lock.json
+frontend/package-lock.json
