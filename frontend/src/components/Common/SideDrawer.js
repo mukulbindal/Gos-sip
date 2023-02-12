@@ -197,11 +197,11 @@ const SideDrawer = () => {
                 size="sm"
                 cursor="pointer"
                 name={chatState.user.name}
-                src={`/api/user/image/${chatState.user._id}`}
+                src={`/api/user/image/${chatState.user._id}?${Date.now()}`}
               />
             </MenuButton>
             <MenuList margin={2}>
-              <ProfileModal user={chatState.user}>
+              <ProfileModal user={chatState.user} editable={true}>
                 <MenuItem>My Profile</MenuItem>
               </ProfileModal>
               <MenuDivider />

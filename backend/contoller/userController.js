@@ -179,11 +179,27 @@ const googleSignIn = asyncHandler(async (req, res) => {
   }
 });
 
+const updateImage = asyncHandler(async (req, res) => {
+  try {
+    const { pic } = req.body;
+    const userId = req.currentUser._id;
+
+    const newUser = await userModel.findById(userId);
+
+    newUser.pic = pic;
+    await newUser.save();
+    res.status(201).json({ _id: req.currentUser._id });
+  } catch (error) {
+    res.status(error.statusCode || 500);
+    throw error;
+  }
+});
 const userController = {
   registerUser,
   authUser,
   searchUser,
   getImage,
   googleSignIn,
+  updateImage,
 };
 module.exports = userController;
